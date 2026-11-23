@@ -2,8 +2,9 @@ name: Scrape pools
 
 on:
   schedule:
-    # every 20 minutes from 04:00 to 22:40 UTC (≈ 05:00–23:40 Berlin)
-    - cron: "*/20 4-22 * * *"
+    # every 20 minutes (at :07, :27, :47 – off-peak minutes start more reliably on GitHub)
+    # from 04:07 to 22:47 UTC (≈ 05:00–23:50 Berlin)
+    - cron: "7-59/20 4-22 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -23,8 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Unit tests
@@ -34,7 +35,7 @@ jobs:
       - name: Index page
         run: |
           echo '<!doctype html><meta charset="utf-8"><title>BerlinSwim data</title><a href="pools.json">pools.json</a>' > site/index.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
