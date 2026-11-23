@@ -1,0 +1,10 @@
+.DS_Store
+scraper/build/
+__pycache__/
+*.pyc
+# Xcode
+ios/*.xcodeproj/
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate

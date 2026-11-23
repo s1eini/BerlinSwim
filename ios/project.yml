@@ -1,0 +1,93 @@
+name: BerlinSwim
+options:
+  bundleIdPrefix: de.eatbl
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: de
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Set your team here (or in Xcode → Signing) for device builds:
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  BadKit:
+    path: BadKit
+
+targets:
+  BerlinSwim:
+    type: application
+    platform: iOS
+    sources:
+      - path: BerlinSwim
+    dependencies:
+      - package: BadKit
+      - target: BerlinSwimWidget
+        embed: true
+    entitlements:
+      path: BerlinSwim/BerlinSwim.entitlements
+      properties:
+        com.apple.security.application-groups: [group.de.eatbl.berlinswim]
+    info:
+      path: BerlinSwim/Info.plist
+      properties:
+        CFBundleDisplayName: Baden
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSLocationWhenInUseUsageDescription: "Damit du siehst, welche Bäder du von hier aus noch rechtzeitig erreichst."
+        PoolsFeedURL: "$(POOLS_FEED_URL)"
+        CFBundleURLTypes:
+          - CFBundleURLName: de.eatbl.BerlinSwim
+            CFBundleURLSchemes: [berlinswim]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.eatbl.BerlinSwim
+        POOLS_FEED_URL: "https://s1eini.github.io/BerlinSwim/pools.json"
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+
+  BerlinSwimWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BerlinSwimWidget
+      - path: BerlinSwim/Resources/pools-seed.json
+        buildPhase: resources
+    dependencies:
+      - package: BadKit
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    entitlements:
+      path: BerlinSwimWidget/BerlinSwimWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.de.eatbl.berlinswim]
+    info:
+      path: BerlinSwimWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Baden
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        NSWidgetWantsLocation: true
+        NSLocationWhenInUseUsageDescription: "Damit das Widget erreichbare Bäder in deiner Nähe zeigt."
+        PoolsFeedURL: "$(POOLS_FEED_URL)"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.eatbl.BerlinSwim.Widget
+        POOLS_FEED_URL: "https://s1eini.github.io/BerlinSwim/pools.json"
+        TARGETED_DEVICE_FAMILY: "1"
+
+schemes:
+  BerlinSwim:
+    build:
+      targets:
+        BerlinSwim: all
+        BerlinSwimWidget: all
+    run:
+      config: Debug
