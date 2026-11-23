@@ -217,7 +217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Count women-only sessions"
+            "value": "Include women-only sessions"
           }
         }
       }
@@ -237,7 +237,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show closed pools"
+            "value": "Show pools closed for the season"
           }
         }
       }
@@ -387,7 +387,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not full"
+            "value": "Not busy"
           }
         }
       }
@@ -417,7 +417,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Full pool only"
+            "value": "Hide times with club lanes"
           }
         }
       }
@@ -567,7 +567,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hide full pools"
+            "value": "Hide busy pools"
           }
         }
       }
@@ -660,7 +660,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "“50 m pools only” is the same filter as the 50 m chip on the home screen. Closed pools are e.g. outdoor pools out of season. “Full pool only” hides times when some lanes are reserved for clubs."
+            "value": "“50 m pools only” is the same filter as the 50 m chip on the home screen. “Hide times with club lanes” skips sessions where some lanes are reserved for clubs. Pools closed for the season are e.g. outdoor pools in winter."
           }
         }
       }
