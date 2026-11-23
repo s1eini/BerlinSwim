@@ -10,6 +10,7 @@ struct PoolMapScreen: View {
     @State private var selection: Int?
 
     var body: some View {
+        NavigationStack {
         Map(position: $position, selection: $selection) {
             UserAnnotation()
             ForEach(model.plans.reversed()) { plan in
@@ -33,7 +34,7 @@ struct PoolMapScreen: View {
         }
         .safeAreaInset(edge: .bottom) {
             if let id = selection, let plan = model.plans.first(where: { $0.pool.id == id }) {
-                Button { model.openPoolID = plan.pool.id } label: {
+                NavigationLink(value: plan.pool) {
                     PoolCard(plan: plan)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -44,6 +45,11 @@ struct PoolMapScreen: View {
             }
         }
         .animation(.snappy, value: selection)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(for: Pool.self) { pool in
+            PoolPager(plans: [model.plan(for: pool)], selected: pool)
+        }
+        }
     }
 }
 

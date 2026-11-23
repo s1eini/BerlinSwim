@@ -19,6 +19,8 @@ final class AppModel {
     var errorMessage: String?
     /// Set by deep links / widget taps.
     var openPoolID: Int?
+    /// Navigation path of the "Bäder" tab (deep links push here).
+    var poolPath: [Pool] = []
 
     var preferences: SwimPreferences {
         didSet {

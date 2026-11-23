@@ -16,13 +16,14 @@ struct PoolListScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
+        @Bindable var model = model
+        NavigationStack(path: $model.poolPath) {
             ScrollView {
                 LazyVStack(spacing: 14) {
                     header
                     FilterBar()
                     if let best = hero {
-                        Button { model.openPoolID = best.pool.id } label: { HeroCard(plan: best) }
+                        NavigationLink(value: best.pool) { HeroCard(plan: best) }
                             .buttonStyle(.plain)
                     }
                     if let error = model.errorMessage {
@@ -54,6 +55,10 @@ struct PoolListScreen: View {
             .background(WaterBackground(status: model.plans.first?.status, date: model.now).ignoresSafeArea())
             .refreshable { await model.refresh(force: true) }
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: Pool.self) { pool in
+                PoolPager(plans: model.plans.contains { $0.pool.id == pool.id } ? model.plans : [model.plan(for: pool)],
+                          selected: pool)
+            }
         }
     }
 
@@ -91,7 +96,7 @@ struct PoolListScreen: View {
 
     private func cards(_ plans: [SwimPlan]) -> some View {
         ForEach(plans) { plan in
-            Button { model.openPoolID = plan.pool.id } label: { PoolCard(plan: plan) }
+            NavigationLink(value: plan.pool) { PoolCard(plan: plan) }
                 .buttonStyle(.plain)
                 .contextMenu {
                     Button(model.isFavorite(plan.pool) ? "Aus Favoriten entfernen" : "Zu Favoriten",

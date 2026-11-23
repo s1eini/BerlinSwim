@@ -89,7 +89,7 @@ struct SearchScreen: View {
     var body: some View {
         NavigationStack {
             List(results) { plan in
-                Button { model.openPoolID = plan.pool.id } label: {
+                NavigationLink(value: plan.pool) {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(plan.pool.name).foregroundStyle(.primary)
@@ -103,6 +103,9 @@ struct SearchScreen: View {
             }
             .navigationTitle("Suche")
             .searchable(text: $query, prompt: "Bad, Bezirk, Ausstattung")
+            .navigationDestination(for: Pool.self) { pool in
+                PoolPager(plans: results, selected: pool)
+            }
         }
     }
 }

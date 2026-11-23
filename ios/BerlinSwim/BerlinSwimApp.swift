@@ -54,15 +54,15 @@ struct RootView: View {
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
-        .sheet(item: Binding(
-            get: { model.openPoolID.flatMap { id in model.pools.first { $0.id == id } } },
-            set: { model.openPoolID = $0?.id }
-        )) { pool in
-            // One detail sheet for list, map, search and widget taps; swipe sideways between pools.
-            let plans = model.plans.contains { $0.pool.id == pool.id } ? model.plans : [model.plan(for: pool)]
-            PoolPager(plans: plans, selected: pool)
-                .environment(model)
-                .presentationDragIndicator(.visible)
-        }
+        .onChange(of: model.openPoolID, initial: true) { openFromDeepLink() }
+        .onChange(of: model.pools.count) { openFromDeepLink() }
+    }
+
+    /// Widget tap / deep link: switch to the pools tab and push the detail.
+    private func openFromDeepLink() {
+        guard let id = model.openPoolID, let pool = model.pools.first(where: { $0.id == id }) else { return }
+        tab = .pools
+        model.poolPath = [pool]
+        model.openPoolID = nil
     }
 }

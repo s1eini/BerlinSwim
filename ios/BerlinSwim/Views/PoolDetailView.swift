@@ -27,6 +27,24 @@ struct PoolPager: View {
         .scrollPosition(id: $selected)
         .scrollIndicators(.hidden)
         .ignoresSafeArea(edges: .bottom)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar {
+            if let pool = selected {
+                ToolbarItem(placement: .topBarTrailing) { FavoriteButton(pool: pool) }
+            }
+        }
+    }
+}
+
+struct FavoriteButton: View {
+    @Environment(AppModel.self) private var model
+    let pool: Pool
+    var body: some View {
+        Button(model.isFavorite(pool) ? "Favorit entfernen" : "Favorit",
+               systemImage: model.isFavorite(pool) ? "star.fill" : "star") {
+            model.toggleFavorite(pool)
+        }
     }
 }
 
@@ -35,7 +53,6 @@ struct PoolPager: View {
 struct PoolDetailView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
-    @Environment(\.dismiss) private var dismiss
     let pool: Pool
 
     private var plan: SwimPlan { model.plan(for: pool) }
@@ -89,21 +106,6 @@ struct PoolDetailView: View {
 
     private var header: some View {
         VStack(spacing: 4) {
-            HStack {
-                Button("Schließen", systemImage: "xmark") { dismiss() }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.circle)
-                Spacer()
-                Button(model.isFavorite(pool) ? "Favorit entfernen" : "Favorit",
-                       systemImage: model.isFavorite(pool) ? "star.fill" : "star") {
-                    model.toggleFavorite(pool)
-                }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.glass)
-                .buttonBorderShape(.circle)
-            }
-            .font(.headline)
             Text(pool.shortName)
                 .font(.title.weight(.semibold))
                 .multilineTextAlignment(.center)
