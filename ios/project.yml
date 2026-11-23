@@ -13,7 +13,7 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     # Set your team here (or in Xcode → Signing) for device builds:
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: 55SQ97YG8M
     CODE_SIGN_STYLE: Automatic
 
 packages:
