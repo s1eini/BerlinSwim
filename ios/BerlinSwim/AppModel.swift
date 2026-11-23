@@ -12,6 +12,8 @@ final class AppModel {
     private(set) var plans: [SwimPlan] = []
     private(set) var now = Date()
     private(set) var location: CLLocation?
+    /// Live occupancy by pool id (only pools the site reports).
+    private(set) var occupancy: [Int: Occupancy] = [:]
     private(set) var locationDenied = false
     private(set) var isRefreshing = false
     var errorMessage: String?
@@ -88,24 +90,30 @@ final class AppModel {
                 ? "Daten konnten nicht geladen werden."
                 : "Offline – zeige Stand von \(Fmt.weekdayClock(feed!.generatedAt))."
         }
-        recompute()
+        await refreshOccupancy()
         WidgetCenter.shared.reloadAllTimelines()
         await updateRoutes()
+    }
+
+    private func refreshOccupancy() async {
+        occupancy = await OccupancyStore.shared.current()
+        recompute()
     }
 
     /// Re-evaluate every 30 s so "noch X min" stays current.
     private func tick() async {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(30))
-            now = Date()
-            recompute()
+            await refreshOccupancy() // cached for 2 min inside the store
         }
     }
 
     private func recompute() {
         now = Date()
         let table = travelTable
-        plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now) { table.travel(to: $0) }
+        plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy) {
+            table.travel(to: $0)
+        }
     }
 
     // MARK: - Location

@@ -42,6 +42,7 @@ struct PoolDetailView: View {
             VStack(spacing: 14) {
                 hero
                 if !pool.notices.isEmpty { noticesCard }
+                if let o = plan.occupancy { occupancyCard(o) }
                 todayCard
                 weekCard
                 if !pool.waterTemps.isEmpty { waterCard }
@@ -97,6 +98,18 @@ struct PoolDetailView: View {
                         Text(n.text).font(.subheadline)
                     }
                 }
+            }
+        }
+    }
+
+    private func occupancyCard(_ o: Occupancy) -> some View {
+        GlassCard(title: "Auslastung jetzt", symbol: "person.3.fill") {
+            VStack(alignment: .leading, spacing: 6) {
+                OccupancyMeter(o).font(.subheadline.weight(.medium))
+                Text(o.automatic
+                     ? "Live-Zähler der Berliner Bäder-Betriebe\(o.count.map { " · \($0) Gäste" } ?? "")"
+                     : "Ampel der Berliner Bäder-Betriebe")
+                    .font(.caption).opacity(0.75)
             }
         }
     }
@@ -174,10 +187,6 @@ struct PoolDetailView: View {
                 Text("\(plan.travelText) \(model.preferences.travelMode.title.lowercased())\(plan.travelIsEstimate ? " (geschätzt)" : "")")
                     .font(.subheadline.weight(.semibold))
                 if let t = pool.transit { Text(t).font(.footnote).opacity(0.85) }
-                if let level = pool.traffic {
-                    Label("Auslastung: \(["niedrig", "gering", "mittel", "hoch", "sehr hoch"][min(level, 4)])",
-                          systemImage: "person.3.fill").font(.footnote)
-                }
                 Button("Route in Karten", systemImage: "arrow.triangle.turn.up.right.diamond.fill") {
                     RoutingService.openDirections(to: pool, mode: model.preferences.travelMode)
                 }

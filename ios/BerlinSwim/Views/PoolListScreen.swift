@@ -158,6 +158,7 @@ struct HeroCard: View {
             .font(.footnote.weight(.medium))
             .opacity(0.9)
             .padding(.top, 4)
+            if let o = plan.occupancy { OccupancyMeter(o).font(.footnote.weight(.medium)).padding(.top, 2) }
         }
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity)
@@ -201,6 +202,7 @@ struct PoolCard: View {
                 HStack(spacing: 8) {
                     if let lane = plan.pool.laneLength { Text("\(lane) m") }
                     if let t = plan.pool.waterTempC { Text(Fmt.temperature(t)) }
+                    if let o = plan.occupancy { OccupancyMeter(o, compact: true) }
                     if !plan.pool.warnings.isEmpty {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
                     }
@@ -245,6 +247,10 @@ struct FilterBar: View {
                     } label: {
                         pickerChip(Fmt.minutes(model.preferences.trainingMinutes), "timer")
                     }
+                    Button {
+                        withAnimation(.snappy) { model.preferences.avoidCrowded.toggle() }
+                    } label: { chip("Nicht voll", "person.2.slash", active: model.preferences.avoidCrowded) }
+                    .buttonStyle(.plain)
                     ForEach(quick) { f in
                         let on = model.preferences.requiredFeatures.contains(f)
                         Button {

@@ -31,6 +31,7 @@ struct SettingsScreen: View {
                         Text("50 m").tag(Int?.some(50))
                     }
                     Toggle("Eingeschränkte Wasserfläche zählt", isOn: $model.preferences.includeLimited)
+                    Toggle("Volle Bäder ausblenden", isOn: $model.preferences.avoidCrowded)
                 }
 
                 Section("Nur Bäder mit …") {

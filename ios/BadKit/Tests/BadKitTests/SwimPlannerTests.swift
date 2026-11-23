@@ -156,3 +156,37 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         #expect(feed.pools.first?.has(.lane50) == true)
     }
 }
+
+@Suite struct OccupancyTests {
+    let feed = """
+    [{"id":"12","level":2,"color":"#F9C74F","counter":44,"automatic":true,"thresholds":[{"level":1,"threshold":30},{"level":4,"threshold":100}]},
+     {"id":"18","level":1,"counter":-4,"automatic":true,"thresholds":[{"level":4,"threshold":520}]},
+     {"id":"28","level":3,"counter":null,"automatic":false,"thresholds":[{"level":4,"threshold":160}]},
+     {"id":"17","level":-1,"counter":null,"automatic":false,"thresholds":[]}]
+    """
+
+    @Test func parsesLiveAndManualEntries() throws {
+        let o = try Occupancy.parse(Data(feed.utf8))
+        #expect(o.count == 3)          // level -1 dropped
+        #expect(o[12]?.fraction == 0.44)
+        #expect(o[18]?.count == 0)     // negative counter clamped
+        #expect(o[28]?.fraction == nil) // manual: level only
+        #expect(o[28]?.isCrowded == true)
+    }
+
+    @Test func avoidCrowdedFiltersPools() throws {
+        let o = try Occupancy.parse(Data(feed.utf8))
+        let open = [Slot(start: t(8), end: t(22), kind: .public)]
+        let pools = [makePool(id: 12, slots: open), makePool(id: 28, slots: open)]
+        let p = planner { $0.avoidCrowded = true }
+        let plans = p.plans(for: pools, now: t(10), occupancy: o) { _ in (600, true) }
+        #expect(plans.map(\.pool.id) == [12])
+        #expect(plans.first?.occupancy?.level == 2)
+    }
+
+    @Test func oldPreferencesStillDecode() throws {
+        let old = #"{"trainingMinutes":45,"changeMinutes":10,"travelMode":"walking","includeLimited":true,"requiredFeatures":[],"favorites":[79],"minimumUsefulMinutes":20}"#
+        let p = try JSONDecoder().decode(SwimPreferences.self, from: Data(old.utf8))
+        #expect(p.trainingMinutes == 45 && p.favorites == [79] && p.avoidCrowded == false)
+    }
+}

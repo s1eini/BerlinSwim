@@ -52,8 +52,30 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
     public var favorites: Set<Int> = []
     /// Below this many minutes a window isn't shown as "tight" anymore.
     public var minimumUsefulMinutes: Int = 20
+    /// Hide pools whose live occupancy is orange/red.
+    public var avoidCrowded: Bool = false
 
     public init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case trainingMinutes, changeMinutes, travelMode, minLaneLength, includeLimited
+        case requiredFeatures, favorites, minimumUsefulMinutes, avoidCrowded
+    }
+
+    /// Tolerant decoding: missing keys (older app versions) fall back to defaults.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = SwimPreferences()
+        trainingMinutes = try c.decodeIfPresent(Int.self, forKey: .trainingMinutes) ?? d.trainingMinutes
+        changeMinutes = try c.decodeIfPresent(Int.self, forKey: .changeMinutes) ?? d.changeMinutes
+        travelMode = try c.decodeIfPresent(TravelMode.self, forKey: .travelMode) ?? d.travelMode
+        minLaneLength = try c.decodeIfPresent(Int.self, forKey: .minLaneLength)
+        includeLimited = try c.decodeIfPresent(Bool.self, forKey: .includeLimited) ?? d.includeLimited
+        requiredFeatures = try c.decodeIfPresent(Set<Feature>.self, forKey: .requiredFeatures) ?? []
+        favorites = try c.decodeIfPresent(Set<Int>.self, forKey: .favorites) ?? []
+        minimumUsefulMinutes = try c.decodeIfPresent(Int.self, forKey: .minimumUsefulMinutes) ?? d.minimumUsefulMinutes
+        avoidCrowded = try c.decodeIfPresent(Bool.self, forKey: .avoidCrowded) ?? d.avoidCrowded
+    }
 }
 
 public struct SwimPlan: Sendable, Identifiable, Hashable {
@@ -90,6 +112,8 @@ public struct SwimPlan: Sendable, Identifiable, Hashable {
     /// Next window when nothing fits today.
     public var nextWindow: SwimWindow?
     public var closedReason: String?
+    /// Live occupancy, if the site reports one for this pool.
+    public var occupancy: Occupancy?
 
     public static func == (a: SwimPlan, b: SwimPlan) -> Bool {
         a.pool.id == b.pool.id && a.status == b.status && a.usableMinutes == b.usableMinutes && a.travel == b.travel
@@ -205,13 +229,17 @@ public struct SwimPlanner: Sendable {
         return plan
     }
 
-    /// All plans, filtered by required features and sorted: status, then travel time.
-    public func plans(for pools: [Pool], now: Date, travel: (Pool) -> (TimeInterval, Bool)) -> [SwimPlan] {
+    /// All plans, filtered by required features (and crowding) and sorted: status, then travel time.
+    public func plans(for pools: [Pool], now: Date, occupancy: [Int: Occupancy] = [:],
+                      travel: (Pool) -> (TimeInterval, Bool)) -> [SwimPlan] {
         pools
             .filter { pool in preferences.requiredFeatures.allSatisfy { pool.has($0) } }
+            .filter { pool in !(preferences.avoidCrowded && occupancy[pool.id]?.isCrowded == true) }
             .map { pool in
                 let (t, est) = travel(pool)
-                return plan(for: pool, now: now, travel: t, travelIsEstimate: est)
+                var p = plan(for: pool, now: now, travel: t, travelIsEstimate: est)
+                p.occupancy = occupancy[pool.id]
+                return p
             }
             .sorted { a, b in
                 if a.status != b.status { return a.status < b.status }
