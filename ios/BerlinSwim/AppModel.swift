@@ -73,10 +73,11 @@ final class AppModel {
         started = true
         feed = await PoolStore.shared.cached()
         recompute()
+        async let o: Void = refreshOccupancy() // independent of the pools.json fetch
         async let r: Void = refresh()
         async let l: Void = trackLocation()
         async let c: Void = tick()
-        _ = await (r, l, c)
+        _ = await (o, r, l, c)
     }
 
     func refresh(force: Bool = false) async {

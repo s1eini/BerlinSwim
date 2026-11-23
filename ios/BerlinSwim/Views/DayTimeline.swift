@@ -1,81 +1,130 @@
 import BadKit
 import SwiftUI
 
-/// Horizontal bars per area for one day: public (bright), limited (striped-ish), restricted/private (dim),
-/// with a "now" marker and the user's planned swim window.
+/// One track per area for today (06–23 h): segments by slot kind, a "now" tick,
+/// and a thin bar under the track for your planned swim.
 struct DayTimeline: View {
     let pool: Pool
     let day: Date
     let now: Date
     let plan: SwimPlan
 
-    private var dayStart: Date { Calendar.berlin.startOfDay(for: day).addingTimeInterval(6 * 3600) }
-    private var dayEnd: Date { Calendar.berlin.startOfDay(for: day).addingTimeInterval(23 * 3600) }
+    private let startHour = 6.0, endHour = 23.0
+    private let ticks = [6, 10, 14, 18, 22]
+
+    private var dayStart: Date { Calendar.berlin.startOfDay(for: day).addingTimeInterval(startHour * 3600) }
+    private var dayEnd: Date { Calendar.berlin.startOfDay(for: day).addingTimeInterval(endHour * 3600) }
 
     private var areas: [(Area, [Slot])] {
         pool.areas.compactMap { a in
-            let s = a.slots.filter { $0.end > dayStart && $0.start < dayEnd }
+            let s = a.slots.filter { $0.end > dayStart && $0.start < dayEnd }.sorted { $0.start < $1.start }
             return s.isEmpty ? nil : (a, s)
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 18) {
             if areas.isEmpty {
                 Text(plan.status == .closed ? plan.subline : "Heute keine Öffnungszeiten.")
                     .font(.subheadline).opacity(0.85)
             }
             ForEach(areas, id: \.0.name) { area, slots in
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(area.name + (area.laneLength.map { " · \($0) m" } ?? ""))
-                        .font(.caption.weight(.semibold)).opacity(0.85)
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(.white.opacity(0.08))
-                            ForEach(slots, id: \.self) { s in
-                                Capsule()
-                                    .fill(color(for: s.kind))
-                                    .frame(width: max(3, width(s.start, s.end, geo.size.width)))
-                                    .offset(x: x(s.start, geo.size.width))
+                        .font(.subheadline.weight(.semibold))
+                    track(area: area, slots: slots)
+                    VStack(alignment: .leading, spacing: 3) {
+                        ForEach(slots, id: \.self) { s in
+                            HStack(spacing: 8) {
+                                RoundedRectangle(cornerRadius: 2).fill(color(for: s.kind)).frame(width: 10, height: 10)
+                                Text(Fmt.range(s.start, s.end)).monospacedDigit()
+                                Text(s.shortLabel).opacity(0.8).lineLimit(1)
                             }
-                            if plan.window?.areaName == area.name, let a = plan.swimStart, let b = plan.swimEnd,
-                               Calendar.berlin.isDate(a, inSameDayAs: day) {
-                                Capsule()
-                                    .stroke(.white, lineWidth: 2)
-                                    .frame(width: max(3, width(a, b, geo.size.width)), height: 18)
-                                    .offset(x: x(a, geo.size.width))
-                            }
-                            if Calendar.berlin.isDate(now, inSameDayAs: day), now > dayStart, now < dayEnd {
-                                Rectangle().fill(.white).frame(width: 2, height: 26)
-                                    .offset(x: x(now, geo.size.width))
-                            }
+                            .font(.footnote)
                         }
-                    }
-                    .frame(height: 14)
-                    .padding(.vertical, 6)
-                    ForEach(slots, id: \.self) { s in
-                        HStack {
-                            Circle().fill(color(for: s.kind)).frame(width: 8, height: 8)
-                            Text("\(Fmt.clock(s.start))–\(Fmt.clock(s.end))").monospacedDigit()
-                            Text(s.label).lineLimit(1).opacity(0.8)
-                        }
-                        .font(.caption)
                     }
                 }
             }
-            HStack {
-                ForEach(["6", "10", "14", "18", "22"], id: \.self) { Text($0).frame(maxWidth: .infinity) }
+            if !areas.isEmpty { legend }
+        }
+    }
+
+    private func track(area: Area, slots: [Slot]) -> some View {
+        VStack(spacing: 4) {
+            GeometryReader { geo in
+                let w = geo.size.width
+                ZStack(alignment: .leading) {
+                    Rectangle().fill(.white.opacity(0.08))
+                    ForEach(slots, id: \.self) { s in
+                        Rectangle()
+                            .fill(color(for: s.kind))
+                            .frame(width: max(2, width(s.start, s.end, w) - 1)) // 1 pt gap between segments
+                            .offset(x: x(s.start, w))
+                    }
+                    if Calendar.berlin.isDate(now, inSameDayAs: day), now > dayStart, now < dayEnd {
+                        Rectangle().fill(.white).frame(width: 2)
+                            .shadow(color: .black.opacity(0.4), radius: 1)
+                            .offset(x: x(now, w) - 1)
+                    }
+                }
+                .clipShape(.rect(cornerRadius: 5))
             }
-            .font(.caption2).opacity(0.6)
+            .frame(height: 18)
+
+            // Planned swim
+            GeometryReader { geo in
+                if plan.window?.areaName == area.name, let a = plan.swimStart, let b = plan.swimEnd,
+                   Calendar.berlin.isDate(a, inSameDayAs: day) {
+                    Capsule().fill(plan.status.color)
+                        .frame(width: max(4, width(a, b, geo.size.width)), height: 4)
+                        .offset(x: x(a, geo.size.width))
+                }
+            }
+            .frame(height: 4)
+
+            // Axis
+            GeometryReader { geo in
+                ForEach(ticks, id: \.self) { h in
+                    Text(String(format: "%02d", h))
+                        .font(.caption2.monospacedDigit())
+                        .opacity(0.6)
+                        .fixedSize()
+                        .position(x: CGFloat((Double(h) - startHour) / (endHour - startHour)) * geo.size.width, y: 6)
+                }
+            }
+            .frame(height: 12)
+        }
+    }
+
+    private var legend: some View {
+        HStack(spacing: 12) {
+            legendItem(.public, "öffentlich")
+            legendItem(.limited, "eingeschränkt")
+            legendItem(.private, "Vereine")
+            if plan.swimStart != nil {
+                HStack(spacing: 4) {
+                    Capsule().fill(plan.status.color).frame(width: 12, height: 4)
+                    Text("dein Training")
+                }
+            }
+        }
+        .font(.caption2)
+        .opacity(0.8)
+    }
+
+    private func legendItem(_ kind: Slot.Kind, _ title: String) -> some View {
+        HStack(spacing: 4) {
+            RoundedRectangle(cornerRadius: 2).fill(color(for: kind)).frame(width: 10, height: 10)
+            Text(title)
         }
     }
 
     private func color(for kind: Slot.Kind) -> Color {
         switch kind {
-        case .public: .white.opacity(0.9)
-        case .limited: .white.opacity(0.6)
-        case .restricted: .cyan.opacity(0.5)
-        case .private: .white.opacity(0.18)
+        case .public: .white.opacity(0.92)
+        case .limited: .white.opacity(0.55)
+        case .restricted: Color(red: 0.55, green: 0.85, blue: 1.0).opacity(0.7)
+        case .private: .white.opacity(0.2)
         }
     }
 

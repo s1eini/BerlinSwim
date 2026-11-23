@@ -133,23 +133,20 @@ struct HeroCard: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Label {
-                Text(plan.status.title)
-            } icon: {
-                Image(systemName: plan.status.symbol).foregroundStyle(.white, plan.status.color)
-            }
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 10).padding(.vertical, 4)
-                .glassEffect(.regular, in: .capsule)
             Text(plan.pool.shortName)
                 .font(.title2.weight(.semibold))
                 .multilineTextAlignment(.center)
+            StatusLabel(status: plan.status)
+                .font(.subheadline.weight(.semibold))
+                .padding(.top, 6)
             Text(plan.headline)
                 .font(.system(size: 64, weight: .thin))
                 .contentTransition(.numericText())
-            Text(plan.subline)
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
+            if !plan.subline.isEmpty {
+                Text(plan.subline)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+            }
             HStack(spacing: 14) {
                 Label(plan.travelText, systemImage: "location.fill")
                 if let lane = plan.window?.laneLength { Label("\(lane) m", systemImage: "figure.pool.swim") }
@@ -175,8 +172,8 @@ struct PoolCard: View {
     let plan: SwimPlan
 
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 6) {
                     Text(plan.pool.shortName).font(.title3.weight(.semibold)).lineLimit(1)
                     if model.isFavorite(plan.pool) { Image(systemName: "star.fill").font(.caption) }
@@ -184,22 +181,7 @@ struct PoolCard: View {
                 Text([plan.pool.district, plan.travelText + " " + model.preferences.travelMode.title.lowercased()]
                     .compactMap { $0 }.joined(separator: " · "))
                     .font(.footnote).opacity(0.85)
-                Spacer(minLength: 6)
-                Text(plan.subline).font(.footnote).lineLimit(2).opacity(0.95)
-            }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(plan.headline)
-                    .font(.system(size: plan.headline.count > 8 ? 24 : 34, weight: .light))
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                Label {
-                    Text(plan.status.title)
-                } icon: {
-                    Image(systemName: plan.status.symbol).foregroundStyle(.white, plan.status.color)
-                }
-                    .font(.caption.weight(.semibold))
-                Spacer(minLength: 0)
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     if let lane = plan.pool.laneLength { Text("\(lane) m") }
                     if let t = plan.pool.waterTempC { Text(Fmt.temperature(t)) }
                     if let o = plan.occupancy { OccupancyMeter(o, compact: true) }
@@ -207,12 +189,22 @@ struct PoolCard: View {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
                     }
                 }
-                .font(.caption.weight(.medium)).opacity(0.9)
+                .font(.footnote.weight(.medium).monospacedDigit()).opacity(0.9)
+                if !plan.subline.isEmpty {
+                    Text(plan.subline).font(.footnote.weight(.semibold)).lineLimit(2)
+                }
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(plan.headline)
+                    .font(.system(size: plan.headline.count > 8 ? 24 : 30, weight: .light).monospacedDigit())
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                StatusLabel(status: plan.status)
+                    .font(.caption.weight(.semibold))
             }
         }
         .foregroundStyle(.white)
         .padding(16)
-        .frame(minHeight: 116)
         .background {
             WaterBackground(status: plan.status, date: model.now)
                 .opacity(0.55)

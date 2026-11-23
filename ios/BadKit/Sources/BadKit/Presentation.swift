@@ -2,10 +2,13 @@ import Foundation
 import SwiftUI
 
 public enum Fmt {
+    /// Always "HH:mm" (06:30), so columns of times line up.
     public static func clock(_ d: Date) -> String {
-        d.formatted(Date.FormatStyle(date: .omitted, time: .shortened, timeZone: Calendar.berlin.timeZone)
-            .locale(Locale(identifier: "de_DE")))
+        let c = Calendar.berlin.dateComponents([.hour, .minute], from: d)
+        return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
     }
+
+    public static func range(_ a: Date, _ b: Date) -> String { "\(clock(a))–\(clock(b))" }
 
     /// 74 -> "1 h 14 min", 45 -> "45 min"
     public static func minutes(_ m: Int) -> String {
@@ -36,7 +39,7 @@ public enum Fmt {
 public extension SwimPlan.Status {
     var title: String {
         switch self {
-        case .goNow: "Jetzt los"
+        case .goNow: "Offen"
         case .later: "Später heute"
         case .tight: "Knapp"
         case .notToday: "Heute nicht mehr"
@@ -81,11 +84,7 @@ public extension SwimPlan {
     var subline: String {
         switch status {
         case .goNow:
-            var s = usableMinutes >= 180
-                ? "\(Fmt.minutes(usableMinutes)) Wasserzeit"
-                : "Wasserzeit bis \(swimEnd.map(Fmt.clock) ?? "–")"
-            if let leaveBy { s += " · los bis \(Fmt.clock(leaveBy))" }
-            return s
+            return closingSoon ? "los bis \(leaveBy.map(Fmt.clock) ?? "–") · noch \(Fmt.minutes(usableMinutes)) Wasserzeit" : ""
         case .later:
             guard let window else { return "" }
             let depart = window.start.addingTimeInterval(-travel)
@@ -99,6 +98,13 @@ public extension SwimPlan {
         case .closed:
             return closedReason ?? "geschlossen"
         }
+    }
+
+    /// True when you have to leave within the next 90 minutes to still get your training in.
+    var closingSoon: Bool {
+        guard status == .goNow, let leaveBy else { return false }
+        let now = arrival.addingTimeInterval(-travel)
+        return leaveBy.timeIntervalSince(now) < 90 * 60
     }
 
     var travelText: String {

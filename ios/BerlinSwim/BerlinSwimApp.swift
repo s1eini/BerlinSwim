@@ -10,7 +10,14 @@ struct BerlinSwimApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
-                .task { await model.start() }
+                .task {
+                    #if DEBUG
+                    // Screenshot/testing aid: launch with `-openPool <id>`.
+                    let id = UserDefaults.standard.integer(forKey: "openPool")
+                    if id > 0 { model.openPoolID = id }
+                    #endif
+                    await model.start()
+                }
                 .onOpenURL { url in
                     // berlinswim://pool/<id>
                     if url.host() == "pool", let id = Int(url.lastPathComponent) {

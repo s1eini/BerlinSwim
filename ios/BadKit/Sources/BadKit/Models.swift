@@ -141,6 +141,16 @@ public struct Slot: Codable, Sendable, Hashable {
     }
 
     public var isOpenToEveryone: Bool { kind == .public || kind == .limited }
+
+    /// Short human label for timelines.
+    public var shortLabel: String {
+        switch kind {
+        case .public: "öffentlich"
+        case .limited: "öffentlich · eingeschränkt"
+        case .private: label.lowercased().contains("kein") ? label : "Schul- & Vereinsbetrieb"
+        case .restricted: label.replacingOccurrences(of: "öffentl. Schwimmen ", with: "")
+        }
+    }
 }
 
 // MARK: - Features used for filters and chips
