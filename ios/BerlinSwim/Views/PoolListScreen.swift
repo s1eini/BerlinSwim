@@ -34,7 +34,7 @@ struct PoolListScreen: View {
                         DisclosureGroup(isExpanded: $showAll) {
                             LazyVStack(spacing: 12) { cards(others) }.padding(.top, 8)
                         } label: {
-                            Text("Heute nicht mehr / geschlossen (\(others.count))")
+                            Text("Geschlossen")
                                 .font(.headline).foregroundStyle(.white)
                         }
                         .tint(.white)
@@ -140,13 +140,31 @@ struct PoolCard: View {
                     if model.isFavorite(plan.pool) { Image(systemName: "star.fill").font(.caption) }
                 }
                 Spacer(minLength: 4)
-                VStack(alignment: .trailing, spacing: 2) {
-                    StatusLabel(status: plan.status)
-                        .font(.subheadline.weight(.semibold))
-                    if let detail = plan.statusDetail {
-                        Text(detail)
-                            .font(.title3.weight(.light).monospacedDigit())
-                            .contentTransition(.numericText())
+                // Same two lines as the widget: status icon + caption, value below.
+                let time = plan.timeLines(relativeTo: model.now)
+                // Each line sits in a box with the name's line height and baseline, so caption and
+                // value share the baselines of the name's first and second line.
+                VStack(alignment: .trailing, spacing: 0) {
+                    nameLine {
+                        HStack(spacing: 3) {
+                            // Open/tight need no icon ("offen bis", "noch", "nur noch" say it all).
+                            if plan.status > .tight {
+                                Image(systemName: plan.status.symbol)
+                                    .font(.caption2)
+                                    .foregroundStyle(.white, plan.status.color)
+                            }
+                            Text(time.caption)
+                                // "nur noch" in the warning color
+                                .foregroundStyle(plan.status == .tight ? plan.status.color : .white)
+                        }
+                        .font(.footnote.weight(.medium))
+                    }
+                    if !time.value.isEmpty {
+                        nameLine {
+                            Text(time.value)
+                                .font(.title3.monospacedDigit()).fontWeight(.semibold)
+                                .contentTransition(.numericText())
+                        }
                     }
                 }
                 .fixedSize()
@@ -172,6 +190,14 @@ struct PoolCard: View {
         }
         .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 22))
         .accessibilityElement(children: .combine)
+    }
+
+    /// One line with exactly the height and baseline of a name line (title3 semibold).
+    private func nameLine<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        ZStack(alignment: Alignment(horizontal: .trailing, vertical: .firstTextBaseline)) {
+            Text("Ag").font(.title3.weight(.semibold)).hidden()
+            content()
+        }
     }
 }
 

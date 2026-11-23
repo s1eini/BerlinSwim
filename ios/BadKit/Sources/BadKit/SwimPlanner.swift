@@ -56,8 +56,8 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
     public var travelMode: TravelMode = .transit
     /// Only areas with at least this lane length (nil = any).
     public var minLaneLength: Int? = nil
-    /// Count "öffentl. Schwimmen mit eingeschränkter Wasserfläche" as swimmable.
-    public var includeLimited: Bool = true
+    /// Ignore "öffentl. Schwimmen mit eingeschränkter Wasserfläche" (default: it counts).
+    public var onlyFullWaterArea: Bool = false
     public var requiredFeatures: Set<Feature> = []
     public var favorites: Set<Int> = []
     /// Below this many minutes a window isn't shown as "tight" anymore.
@@ -72,7 +72,7 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
     public init() {}
 
     private enum CodingKeys: String, CodingKey {
-        case trainingMinutes, changeMinutes, travelMode, minLaneLength, includeLimited
+        case trainingMinutes, changeMinutes, travelMode, minLaneLength, onlyFullWaterArea
         case requiredFeatures, favorites, minimumUsefulMinutes, avoidCrowded, includeWomenOnly, showOutOfService
     }
 
@@ -84,7 +84,8 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
         changeMinutes = try c.decodeIfPresent(Int.self, forKey: .changeMinutes) ?? d.changeMinutes
         travelMode = try c.decodeIfPresent(TravelMode.self, forKey: .travelMode) ?? d.travelMode
         minLaneLength = try c.decodeIfPresent(Int.self, forKey: .minLaneLength)
-        includeLimited = try c.decodeIfPresent(Bool.self, forKey: .includeLimited) ?? d.includeLimited
+        // New key (old "includeLimited" is ignored on purpose: limited water area counts again by default).
+        onlyFullWaterArea = try c.decodeIfPresent(Bool.self, forKey: .onlyFullWaterArea) ?? d.onlyFullWaterArea
         requiredFeatures = try c.decodeIfPresent(Set<Feature>.self, forKey: .requiredFeatures) ?? []
         favorites = try c.decodeIfPresent(Set<Int>.self, forKey: .favorites) ?? []
         minimumUsefulMinutes = try c.decodeIfPresent(Int.self, forKey: .minimumUsefulMinutes) ?? d.minimumUsefulMinutes
@@ -168,7 +169,7 @@ public struct SwimPlanner: Sendable {
     /// Merged public windows of a pool, sorted by start.
     public func windows(for pool: Pool) -> [SwimWindow] {
         windows(for: pool) { s in
-            s.kind == .public || (s.kind == .limited && preferences.includeLimited)
+            s.kind == .public || (s.kind == .limited && !preferences.onlyFullWaterArea)
                 || (preferences.includeWomenOnly && s.isWomenOnly)
         }
     }

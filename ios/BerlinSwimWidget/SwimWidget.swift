@@ -180,15 +180,8 @@ struct SwimWidgetView: View {
 
     private func detail(_ plan: SwimPlan) -> String { plan.statusDetail ?? plan.status.title }
 
-    /// Two-line time: small caption + value, e.g. "offen bis" / "21:30", "noch" / "45 min", "nur noch" / "20 min".
     private func timeLines(_ plan: SwimPlan) -> (caption: String, value: String) {
-        switch plan.status {
-        case .goNow where plan.closingSoon: ("noch", Fmt.minutes(plan.usableMinutes))
-        case .goNow: ("offen bis", plan.swimEnd.map(Fmt.clock) ?? "–")
-        case .tight: ("nur noch", Fmt.minutes(plan.usableMinutes))
-        case .later: ("ab", plan.window.map { Fmt.clock($0.start) } ?? "–")
-        case .notToday, .closed: (plan.status.title, plan.nextWindow.map { Fmt.dayFrom($0.start, relativeTo: entry.date) } ?? "")
-        }
+        plan.timeLines(relativeTo: entry.date)
     }
 
     private func url(_ plan: SwimPlan) -> URL { URL(string: "berlinswim://pool/\(plan.pool.id)")! }

@@ -28,14 +28,14 @@ struct SettingsScreen: View {
                     Toggle("Nur 50-m-Becken", isOn: Binding(
                         get: { model.preferences.minLaneLength == 50 },
                         set: { model.preferences.minLaneLength = $0 ? 50 : nil }))
-                    Toggle("Eingeschränkte Wasserfläche zählt", isOn: $model.preferences.includeLimited)
+                    Toggle("Nur ungeteilte Wasserfläche", isOn: $model.preferences.onlyFullWaterArea)
                     Toggle("Volle Bäder ausblenden", isOn: $model.preferences.avoidCrowded)
                     Toggle("Frauenschwimmen zählt", isOn: $model.preferences.includeWomenOnly)
                     Toggle("Geschlossene Bäder zeigen", isOn: $model.preferences.showOutOfService)
                 } header: {
                     Text("Bäder")
                 } footer: {
-                    Text("„Nur 50-m-Becken“ ist derselbe Filter wie der 50-m-Chip auf der Startseite. Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison.")
+                    Text("„Nur 50-m-Becken“ ist derselbe Filter wie der 50-m-Chip auf der Startseite. Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison. „Nur ungeteilte Wasserfläche“ blendet Zeiten aus, in denen Bahnen an Vereine vergeben sind.")
                 }
 
                 Section("Nur Bäder mit …") {

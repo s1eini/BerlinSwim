@@ -89,6 +89,18 @@ public extension SwimPlan {
         }
     }
 
+    /// Two-line time used by widget rows and list cards: small caption + value,
+    /// e.g. "offen bis" / "21:30", "noch" / "45 min", "nur noch" / "20 min", "Geschlossen" / "morgen ab 06:30".
+    func timeLines(relativeTo now: Date = .now) -> (caption: String, value: String) {
+        switch status {
+        case .goNow where closingSoon: ("noch", Fmt.minutes(usableMinutes))
+        case .goNow: ("offen bis", swimEnd.map(Fmt.clock) ?? "–")
+        case .tight: ("nur noch", Fmt.minutes(usableMinutes))
+        case .later: ("ab", window.map { Fmt.clock($0.start) } ?? "–")
+        case .notToday, .closed: (status.title, nextWindow.map { Fmt.dayFrom($0.start, relativeTo: now) } ?? "")
+        }
+    }
+
     /// "Offen bis 21:30" – status and detail in one line.
     var statusLine: String {
         [status.title, statusDetail].compactMap { $0 }.joined(separator: " · ")

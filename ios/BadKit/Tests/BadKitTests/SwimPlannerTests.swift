@@ -136,7 +136,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
 
     @Test func limitedCanBeExcluded() {
         let pool = makePool(slots: [Slot(start: t(8), end: t(22), kind: .limited)])
-        let p = planner { $0.includeLimited = false }
+        let p = planner { $0.onlyFullWaterArea = true }
         #expect(p.plan(for: pool, now: t(10), travel: 600).status == .notToday)
     }
 
@@ -242,6 +242,13 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         let old = #"{"trainingMinutes":45,"changeMinutes":10,"travelMode":"walking","includeLimited":true,"requiredFeatures":[],"favorites":[79],"minimumUsefulMinutes":20}"#
         let p = try JSONDecoder().decode(SwimPreferences.self, from: Data(old.utf8))
         #expect(p.trainingMinutes == 45 && p.favorites == [79] && p.avoidCrowded == false)
+    }
+
+    @Test func oldLimitedSettingIsIgnored() throws {
+        // Users who switched limited water area off before still get it counted (new default).
+        let old = #"{"includeLimited":false}"#
+        let p = try JSONDecoder().decode(SwimPreferences.self, from: Data(old.utf8))
+        #expect(p.onlyFullWaterArea == false)
     }
 
     @Test func weatherClosureClosesPool() throws {
