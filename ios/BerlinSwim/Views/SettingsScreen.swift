@@ -114,6 +114,7 @@ struct SearchScreen: View {
     }
 }
 
+#if DEBUG
 #Preview("Einstellungen") {
     SettingsScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }
@@ -121,3 +122,4 @@ struct SearchScreen: View {
 #Preview("Suche") {
     SearchScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }
+#endif

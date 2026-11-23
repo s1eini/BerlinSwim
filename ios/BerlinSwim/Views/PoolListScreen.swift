@@ -253,6 +253,7 @@ struct FilterBar: View {
     }
 }
 
+#if DEBUG
 // MARK: - Previews
 
 #Preview("Startseite · 17:30") {
@@ -290,3 +291,4 @@ struct FilterBar: View {
         .environment(AppModel.preview { $0.minLaneLength = 50 })
         .preferredColorScheme(.dark)
 }
+#endif

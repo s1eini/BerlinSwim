@@ -72,6 +72,8 @@ struct PoolPin: View {
     }
 }
 
+#if DEBUG
 #Preview("Karte") {
     PoolMapScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }
+#endif
