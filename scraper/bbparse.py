@@ -150,13 +150,11 @@ def parse_detail_page(s: str) -> dict:
 
     # Closed banner ("Das Bad ist geschlossen." + explanation)
     for i in find_all_open(toks, "facility_body_content_alert"):
-        txt = text_between(toks, i, find_matching_close(toks, i))
-        if txt:
+        for txt in alert_items(toks, i):
             d["notices"].append({"text": txt, "severity": "closed" if "geschlossen" in txt.lower() else "info"})
-    # Sub alerts ("Hinweise")
+    # Sub alerts ("Hinweise") – one notice per <div class="item">
     for i in find_all_open(toks, "facility_body_content_subalert"):
-        txt = text_between(toks, i, find_matching_close(toks, i))
-        if txt:
+        for txt in alert_items(toks, i):
             d["notices"].append({"text": txt, "severity": classify_notice(txt)})
 
     i = find_open(toks, "facility_body_content_subtitle")
@@ -214,9 +212,18 @@ def parse_detail_page(s: str) -> dict:
     return d
 
 
+def alert_items(toks: list[Tok], i: int) -> list[str]:
+    """Texts of the <div class="item"> children of an alert block (or the whole block if it has none)."""
+    end = find_matching_close(toks, i)
+    items = [k for k in range(i + 1, end) if toks[k].kind == "open" and "item" in toks[k].cls()]
+    texts = [text_between(toks, k, find_matching_close(toks, k)) for k in items] if items \
+        else [text_between(toks, i, end)]
+    return [t for t in texts if t]
+
+
 def classify_notice(txt: str) -> str:
     low = txt.lower()
-    if re.search(r"geschlossen|fällt\s+aus|entfällt|gesperrt|nicht\s+(?:geöffnet|nutzbar|verfügbar)", low):
+    if re.search(r"geschlossen|fällt\s+aus|entfällt|gesperrt|außer\s+betrieb|nicht\s+(?:geöffnet|nutzbar|verfügbar)", low):
         return "warning"
     return "info"
 
@@ -305,6 +312,8 @@ def slot_kind(label: str) -> str:
     low = label.lower()
     if not low or re.search(r"\bkein\b|geschlossen|reserviert", low):
         return "private"
+    if low.strip() == "gemischt":  # sauna: mixed = open to everyone
+        return "public"
     if "öffentl" in low:
         if "nur für" in low:
             return "restricted"

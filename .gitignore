@@ -10,3 +10,6 @@ build/
 *.xcuserstate
 .build/
 .swiftpm/
+
+# editor swap files
+*.swp

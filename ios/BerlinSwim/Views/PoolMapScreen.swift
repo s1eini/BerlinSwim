@@ -53,6 +53,7 @@ struct PoolMapScreen: View {
     }
 }
 
+/// One marker style for every pool: swimmer symbol, colored by status (grey when closed).
 struct PoolPin: View {
     let plan: SwimPlan
     let selected: Bool
@@ -60,33 +61,17 @@ struct PoolPin: View {
     private var active: Bool { plan.status <= .tight }
 
     var body: some View {
-        if active {
-            Group {
-                if let lane = plan.window?.laneLength ?? plan.pool.laneLength {
-                    Text("\(lane)").font(.caption.weight(.heavy)).monospacedDigit()
-                } else {
-                    Image(systemName: "figure.pool.swim").font(.caption.weight(.bold))
-                }
-            }
+        Image(systemName: "figure.pool.swim")
+            .font(.system(size: active ? 13 : 10, weight: .bold))
             .foregroundStyle(.white)
-            .frame(width: 32, height: 32)
+            .frame(width: active ? 30 : 22, height: active ? 30 : 22)
             .background(plan.status.color.gradient, in: .circle)
-            .overlay(Circle().stroke(.white, lineWidth: selected ? 3 : 2))
-            .overlay(alignment: .topTrailing) {
-                if !plan.pool.warnings.isEmpty {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.caption2).foregroundStyle(.black, .yellow)
-                        .offset(x: 4, y: -4)
-                }
-            }
+            .overlay(Circle().stroke(.white, lineWidth: selected ? 3 : 1.5))
             .scaleEffect(selected ? 1.3 : 1)
             .shadow(color: .black.opacity(0.3), radius: 3, y: 1)
-        } else {
-            Circle()
-                .fill(Color.gray.opacity(0.85))
-                .frame(width: 12, height: 12)
-                .overlay(Circle().stroke(.white.opacity(0.9), lineWidth: 1.5))
-                .scaleEffect(selected ? 1.6 : 1)
-        }
     }
+}
+
+#Preview("Karte") {
+    PoolMapScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }

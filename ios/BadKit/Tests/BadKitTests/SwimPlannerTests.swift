@@ -33,6 +33,58 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         Slot(start: t(16), end: t(22), kind: .public, label: "öffentl. Schwimmen"),
     ])
 
+    // Stadtbad Neukölln on Mondays: only "Frauenschwimmen" today, public tomorrow.
+    let womenToday = makePool(slots: [
+        Slot(start: t(12, day: 23), end: t(22, 30, day: 23), kind: .restricted, label: "Frauenschwimmen"),
+        Slot(start: t(14), end: t(22, 30), kind: .public, label: "öffentl. Schwimmen"),
+    ], lane: 25)
+
+    @Test func womenOnlyIsHintByDefault() {
+        let plan = planner().plan(for: womenToday, now: t(16, day: 23), travel: 20 * 60)
+        #expect(plan.status == .notToday)
+        #expect(plan.womenOnlyToday?.end == t(22, 30, day: 23))
+        #expect(plan.womenOnlyText == "Frauen bis 22:30")
+    }
+
+    @Test func womenOnlyCountsWhenEnabled() {
+        let plan = planner { $0.includeWomenOnly = true }.plan(for: womenToday, now: t(16, day: 23), travel: 20 * 60)
+        #expect(plan.status == .goNow)
+        #expect(plan.window?.isWomenOnly == true)
+        #expect(plan.womenOnlyToday == nil)
+    }
+
+    @Test func outOfServiceHiddenUnlessEnabled() {
+        let summer = makePool(id: 2, slots: [], closedNow: true)
+        let pools = [evening, summer]
+        #expect(planner().plans(for: pools, now: t(18)) { _ in (600, false) }.map(\.pool.id) == [1])
+        let all = planner { $0.showOutOfService = true }.plans(for: pools, now: t(18)) { _ in (600, false) }
+        #expect(all.count == 2)
+    }
+
+    @Test func fiftyMeterFilterHidesShortPools() {
+        let short = makePool(id: 3, slots: evening.areas[0].slots, lane: 25)
+        let plans = planner { $0.minLaneLength = 50 }.plans(for: [evening, short], now: t(18)) { _ in (600, false) }
+        #expect(plans.map(\.pool.id) == [1])
+    }
+
+    @Test func oldLane50FeatureMigratesToMinLaneLength() throws {
+        let json = #"{"trainingMinutes":60,"requiredFeatures":["lane50","sauna"]}"#
+        let prefs = try JSONDecoder().decode(SwimPreferences.self, from: Data(json.utf8))
+        #expect(prefs.minLaneLength == 50)
+        #expect(prefs.requiredFeatures == [.sauna])
+    }
+
+    @Test func closedTodayShowsNextOpenDay() {
+        let pool = makePool(slots: [
+            Slot(start: t(16, day: 23), end: t(22, day: 23), kind: .public, label: "öffentl. Schwimmen"),
+            Slot(start: t(6, 30), end: t(8), kind: .public, label: "öffentl. Schwimmen"),
+        ], closures: [Closure(dates: ["2026-11-23"], reason: "Teamtag")])
+        let plan = planner().plan(for: pool, now: t(10, day: 23), travel: 600)
+        #expect(plan.status == .closed)
+        #expect(plan.nextWindow?.start == t(6, 30))
+        #expect(plan.statusDetail?.hasSuffix("ab 06:30") == true)
+    }
+
     @Test func goNowWithEnoughTime() {
         let plan = planner().plan(for: evening, now: t(18), travel: 20 * 60)
         #expect(plan.status == .goNow)

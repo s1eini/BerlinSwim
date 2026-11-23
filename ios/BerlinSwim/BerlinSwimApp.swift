@@ -10,6 +10,7 @@ struct BerlinSwimApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
+                .preferredColorScheme(.dark) // white text on water backgrounds needs dark glass
                 .task {
                     #if DEBUG
                     // Screenshot/testing aid: launch with `-openPool <id>`.

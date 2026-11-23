@@ -56,11 +56,23 @@ public struct Pool: Codable, Sendable, Identifiable, Hashable {
     public var rules: Rules
     public var areas: [Area]
 
-    /// "Kombibad Seestraße - Hallenbad" -> "Kombibad Seestraße"
+    /// "Kombibad Seestraße - Hallenbad" -> "Kombibad Seestraße" (otherwise the full name).
     public var shortName: String {
         name.replacingOccurrences(of: " - Hallenbad", with: "")
-            .replacingOccurrences(of: "Schwimmhalle ", with: "")
-            .replacingOccurrences(of: "Stadtbad ", with: "")
+    }
+
+    /// Even shorter, for widgets: drops "Stadtbad", "Schwimmhalle", "Kombibad" prefixes.
+    public var compactName: String {
+        var n = shortName
+        for prefix in ["Stadtbad ", "Schwimmhalle ", "Kombibad "] where n.hasPrefix(prefix) {
+            n.removeFirst(prefix.count)
+        }
+        return n
+    }
+
+    /// Closed for the season / long term: the site flags it closed, or there is no public swimming at all.
+    public var isOutOfService: Bool {
+        closedNow || !swimAreas.contains { $0.slots.contains { $0.kind == .public || $0.kind == .limited } }
     }
 
     public var address: String {

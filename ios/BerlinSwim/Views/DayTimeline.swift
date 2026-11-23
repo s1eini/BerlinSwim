@@ -25,7 +25,7 @@ struct DayTimeline: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             if areas.isEmpty {
-                Text(plan.status == .closed ? plan.subline : "Heute keine Öffnungszeiten.")
+                Text("Heute keine Öffnungszeiten.")
                     .font(.subheadline).opacity(0.85)
             }
             ForEach(areas, id: \.0.name) { area, slots in
@@ -61,13 +61,19 @@ struct DayTimeline: View {
                             .frame(width: max(2, width(s.start, s.end, w) - 1)) // 1 pt gap between segments
                             .offset(x: x(s.start, w))
                     }
-                    if Calendar.berlin.isDate(now, inSameDayAs: day), now > dayStart, now < dayEnd {
-                        Rectangle().fill(.white).frame(width: 2)
-                            .shadow(color: .black.opacity(0.4), radius: 1)
-                            .offset(x: x(now, w) - 1)
-                    }
                 }
                 .clipShape(.rect(cornerRadius: 5))
+                // "Now" marker: red line with a dot above the track (like Calendar), not to be confused with a gap.
+                .overlay(alignment: .leading) {
+                    if Calendar.berlin.isDate(now, inSameDayAs: day), now > dayStart, now < dayEnd {
+                        VStack(spacing: 0) {
+                            Circle().fill(nowColor).frame(width: 8, height: 8)
+                            Rectangle().fill(nowColor).frame(width: 2, height: 22)
+                        }
+                        .shadow(color: .black.opacity(0.3), radius: 1)
+                        .offset(x: x(now, w) - 4, y: -4)
+                    }
+                }
             }
             .frame(height: 18)
 
@@ -101,6 +107,13 @@ struct DayTimeline: View {
             legendItem(.public, "öffentlich")
             legendItem(.limited, "eingeschränkt")
             legendItem(.private, "Vereine")
+            if areas.contains(where: { $0.1.contains { $0.kind == .restricted } }) {
+                legendItem(.restricted, "Gruppen (z. B. Frauen)")
+            }
+            HStack(spacing: 4) {
+                Circle().fill(nowColor).frame(width: 8, height: 8)
+                Text("jetzt")
+            }
             if plan.swimStart != nil {
                 HStack(spacing: 4) {
                     Capsule().fill(plan.status.color).frame(width: 12, height: 4)
@@ -119,6 +132,8 @@ struct DayTimeline: View {
         }
         .fixedSize()
     }
+
+    private let nowColor = Color(red: 1.0, green: 0.32, blue: 0.32)
 
     private func color(for kind: Slot.Kind) -> Color {
         switch kind {

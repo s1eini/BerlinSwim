@@ -14,6 +14,8 @@ private let log = Logger(subsystem: "de.eatbl.BerlinSwim", category: "model")
 final class AppModel {
     private(set) var feed: PoolsFeed?
     private(set) var plans: [SwimPlan] = []
+    /// All pools, ignoring the list filters (features, "Nicht voll") – used by search.
+    private(set) var allPlans: [SwimPlan] = []
     private(set) var now = Date()
     private(set) var location: CLLocation?
     /// Live occupancy by pool id (only pools the site reports).
@@ -29,6 +31,7 @@ final class AppModel {
     var preferences: SwimPreferences {
         didSet {
             guard preferences != oldValue else { return }
+            guard fixedNow == nil else { recompute(); return } // preview: don't persist or route
             SharedState.save(preferences)
             if preferences.travelMode != oldValue.travelMode { Task { await updateRoutes() } }
             recompute()
@@ -40,6 +43,8 @@ final class AppModel {
     @ObservationIgnored private var routedOrigin: CLLocation?
     @ObservationIgnored private var serviceSession: CLServiceSession?
     @ObservationIgnored private var started = false
+    /// Frozen clock for previews.
+    @ObservationIgnored private var fixedNow: Date?
 
     init() {
         preferences = SharedState.loadPreferences()
@@ -59,6 +64,7 @@ final class AppModel {
 
     func plan(for pool: Pool) -> SwimPlan {
         plans.first { $0.pool.id == pool.id }
+            ?? allPlans.first { $0.pool.id == pool.id }
             ?? SwimPlanner(preferences: preferences).plan(for: pool, now: now, travel: travelTable.travel(to: pool).0)
     }
 
@@ -119,9 +125,17 @@ final class AppModel {
     }
 
     private func recompute() {
-        now = Date()
+        now = fixedNow ?? Date()
         let table = travelTable
         plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy) {
+            table.travel(to: $0)
+        }
+        var unfiltered = preferences
+        unfiltered.requiredFeatures = []
+        unfiltered.avoidCrowded = false
+        unfiltered.minLaneLength = nil
+        unfiltered.showOutOfService = true
+        allPlans = SwimPlanner(preferences: unfiltered).plans(for: pools, now: now, occupancy: occupancy) {
             table.travel(to: $0)
         }
     }
@@ -220,3 +234,21 @@ enum RoutingService {
         item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: launch])
     }
 }
+
+#if DEBUG
+extension AppModel {
+    /// Model for Xcode previews: bundled seed data, sample occupancy, fixed clock, no network/location.
+    static func preview(hour: Int = 17, minute: Int = 30, configure: (inout SwimPreferences) -> Void = { _ in }) -> AppModel {
+        let m = AppModel()
+        m.started = true // never start network/location tasks
+        m.fixedNow = PreviewData.now(hour: hour, minute: minute)
+        m.feed = PreviewData.feed
+        m.occupancy = PreviewData.occupancy
+        var prefs = SwimPreferences()
+        configure(&prefs)
+        m.preferences = prefs // triggers recompute
+        m.recompute()
+        return m
+    }
+}
+#endif

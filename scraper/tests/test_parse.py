@@ -60,7 +60,19 @@ class DetailPageTests(unittest.TestCase):
         self.assertEqual(len(d["notices"]), 3)
 
 
+    def test_one_notice_per_item(self):
+        html = ('<div class="facility_body_content_subalert"><div class="item"><div class="msg"> Film am Dienstag. '
+                '</div></div><div class="item"><div class="msg">Das Solebecken ist geschlossen.</div></div></div>')
+        d = bbparse.parse_detail_page(html)
+        self.assertEqual([n["text"] for n in d["notices"]], ["Film am Dienstag.", "Das Solebecken ist geschlossen."])
+        self.assertEqual([n["severity"] for n in d["notices"]], ["info", "warning"])
+
+
 class ClassificationTests(unittest.TestCase):
+    def test_sauna_mixed_is_public(self):
+        self.assertEqual(bbparse.slot_kind("gemischt"), "public")
+        self.assertEqual(bbparse.slot_kind("Frauen"), "restricted")
+
     def test_slot_kinds(self):
         k = bbparse.slot_kind
         self.assertEqual(k("öffentl. Schwimmen"), "public")

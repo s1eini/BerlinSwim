@@ -66,13 +66,17 @@ struct PoolDetailView: View {
                 if !pool.notices.isEmpty {
                     DetailSection(title: "Hinweise") { notices }
                 }
-                if let o = plan.occupancy {
+                if plan.status <= .tight, let o = plan.occupancy {
                     DetailSection(title: "Auslastung") { occupancy(o) }
                 }
-                DetailSection(title: "Heute") {
-                    DayTimeline(pool: pool, day: model.now, now: model.now, plan: plan)
+                if hasSlotsToday {
+                    DetailSection(title: "Heute") {
+                        DayTimeline(pool: pool, day: model.now, now: model.now, plan: plan)
+                    }
                 }
-                DetailSection(title: "Öffentliches Schwimmen") { week }
+                if !weekWindows.isEmpty {
+                    DetailSection(title: "Öffentliches Schwimmen") { week }
+                }
                 if !pool.waterTemps.isEmpty {
                     DetailSection(title: "Wassertemperatur") { water }
                 }
@@ -103,23 +107,49 @@ struct PoolDetailView: View {
         }
     }
 
+    private var hasSlotsToday: Bool {
+        pool.areas.contains { $0.slots.contains { Calendar.berlin.isDate($0.start, inSameDayAs: model.now) } }
+    }
+
+    private var weekWindows: [SwimWindow] {
+        let end = Calendar.berlin.date(byAdding: .day, value: 7, to: Calendar.berlin.startOfDay(for: model.now))!
+        var prefs = model.preferences
+        prefs.minLaneLength = nil
+        return SwimPlanner(preferences: prefs).windows(for: pool)
+            .filter { $0.start < end && $0.end > Calendar.berlin.startOfDay(for: model.now) }
+    }
+
+    /// Closure reason only if it isn't already one of the notices.
+    private var extraClosedReason: String? {
+        guard plan.status == .closed, let r = plan.closedReason, !pool.notices.contains(where: { $0.text == r }) else { return nil }
+        return r
+    }
+
     // MARK: Header
 
     private var header: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text(pool.shortName)
                 .font(.title.weight(.semibold))
                 .multilineTextAlignment(.center)
             Text([pool.type, pool.district].compactMap { $0 }.joined(separator: " · "))
                 .font(.subheadline).opacity(0.85)
-            StatusLabel(status: plan.status)
-                .font(.headline)
-                .padding(.top, 10)
-            Text(plan.headline)
-                .font(.system(size: 72, weight: .thin))
-                .lineLimit(1).minimumScaleFactor(0.5)
-            if !plan.subline.isEmpty {
-                Text(plan.subline).font(.subheadline).multilineTextAlignment(.center).opacity(0.9)
+            HStack(spacing: 6) {
+                StatusLabel(status: plan.status)
+                if let d = plan.statusDetail {
+                    Text("·").opacity(0.6)
+                    Text(d).monospacedDigit().contentTransition(.numericText())
+                }
+            }
+            .font(.title3)
+            .padding(.top, 8)
+            if let hint = plan.hint ?? extraClosedReason {
+                Text(hint).font(.subheadline).multilineTextAlignment(.center).opacity(0.85)
+            }
+            if let w = plan.womenOnlyToday {
+                Label("Heute Frauenschwimmen \(w.start > plan.arrival ? "ab \(Fmt.clock(w.start))" : "bis \(Fmt.clock(w.end))")",
+                      systemImage: "figure.stand.dress")
+                    .font(.subheadline).opacity(0.9)
             }
         }
         .foregroundStyle(.white)
@@ -131,14 +161,9 @@ struct PoolDetailView: View {
 
     private var notices: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(pool.notices, id: \.self) { n in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    if n.severity != .info {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
-                    }
-                    Text(n.text)
-                }
-                .font(.subheadline)
+            // Important ones (closures, restrictions) first, one paragraph each.
+            ForEach(pool.notices.sorted { ($0.severity == .info ? 1 : 0) < ($1.severity == .info ? 1 : 0) }, id: \.self) { n in
+                Text(n.text).font(.subheadline)
             }
         }
     }
@@ -152,7 +177,7 @@ struct PoolDetailView: View {
     }
 
     private var week: some View {
-        let windows = SwimPlanner(preferences: model.preferences).windows(for: pool)
+        let windows = weekWindows
         return VStack(spacing: 0) {
             ForEach(0..<7, id: \.self) { offset in
                 let day = Calendar.berlin.date(byAdding: .day, value: offset, to: model.now)!
@@ -183,14 +208,18 @@ struct PoolDetailView: View {
         }
     }
 
+    /// One row per basin – scales from one to many basins without squeezing.
     private var water: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ForEach(pool.waterTemps, id: \.self) { w in
-                VStack(spacing: 2) {
-                    Text(Fmt.temperature(w.tempC)).font(.headline.monospacedDigit())
-                    Text(w.basin).font(.footnote).opacity(0.8).lineLimit(2).multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            ForEach(Array(pool.waterTemps.enumerated()), id: \.offset) { i, w in
+                HStack {
+                    Text(w.basin)
+                    Spacer()
+                    Text(Fmt.temperature(w.tempC)).monospacedDigit().fontWeight(.semibold)
                 }
-                .frame(maxWidth: .infinity)
+                .font(.subheadline)
+                .padding(.vertical, 8)
+                if i < pool.waterTemps.count - 1 { Divider().overlay(.white.opacity(0.2)) }
             }
         }
     }
@@ -215,7 +244,7 @@ struct PoolDetailView: View {
                         Label("\(mode.title) · \(plan.travelText)", systemImage: mode.symbol)
                             .font(.subheadline.weight(.semibold))
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.glass)
                     .padding(10)
                 }
             }
@@ -269,7 +298,7 @@ struct DetailSection<Content: View>: View {
                 .foregroundStyle(.white)
                 .padding(padded ? 16 : 0)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .glassEffect(.regular.tint(.black.opacity(0.08)), in: .rect(cornerRadius: 20))
+                .glassEffect(.regular.tint(.black.opacity(0.18)), in: .rect(cornerRadius: 20))
         }
     }
 }
@@ -341,3 +370,50 @@ struct FlowLayout: Layout {
         return rows
     }
 }
+
+// MARK: - Previews
+
+#if DEBUG
+/// Detail page for the first pool matching `pick` (falls back to the first pool).
+private struct DetailPreview: View {
+    let model: AppModel
+    let pick: (SwimPlan) -> Bool
+
+    var body: some View {
+        let plan = model.allPlans.first(where: pick) ?? model.allPlans.first
+        NavigationStack {
+            if let plan { PoolPager(plans: [plan], selected: plan.pool) }
+        }
+        .environment(model)
+        .preferredColorScheme(.dark)
+    }
+}
+
+#Preview("Detail · offen") {
+    DetailPreview(model: .preview()) { $0.status == .goNow && $0.occupancy != nil }
+}
+
+#Preview("Detail · schließt bald") {
+    DetailPreview(model: .preview(hour: 20, minute: 10)) { $0.status == .goNow && $0.closingSoon }
+}
+
+#Preview("Detail · später / knapp") {
+    DetailPreview(model: .preview(hour: 11)) { $0.status == .later || $0.status == .tight }
+}
+
+#Preview("Detail · heute zu (Hinweise)") {
+    DetailPreview(model: .preview()) { $0.status == .notToday && !$0.pool.notices.isEmpty }
+}
+
+#Preview("Detail · geschlossen") {
+    DetailPreview(model: .preview { $0.showOutOfService = true }) { $0.status == .closed }
+}
+
+#Preview("Detail · Frauenschwimmen") {
+    DetailPreview(model: .preview()) { $0.womenOnlyToday != nil || $0.pool.name.contains("Neukölln") }
+}
+
+#Preview("Detail · viele Wassertemperaturen") {
+    DetailPreview(model: .preview()) { $0.pool.waterTemps.count >= 4 }
+}
+#endif

@@ -16,7 +16,7 @@ struct SettingsScreen: View {
                         LabeledContent("Umziehen & Duschen", value: Fmt.minutes(model.preferences.changeMinutes))
                     }
                     Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
-                        ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                        ForEach(TravelMode.allCases) { Text($0.title).tag($0) }
                     }
                 } header: {
                     Text("Mein Training")
@@ -24,18 +24,22 @@ struct SettingsScreen: View {
                     Text("Ein Bad gilt als machbar, wenn du vor Einlassschluss da bist und nach dem Umziehen noch deine Trainingsdauer bis zum Badeschluss schwimmen kannst.")
                 }
 
-                Section("Becken") {
-                    Picker("Mindestens", selection: $model.preferences.minLaneLength) {
-                        Text("egal").tag(Int?.none)
-                        Text("25 m").tag(Int?.some(25))
-                        Text("50 m").tag(Int?.some(50))
-                    }
+                Section {
+                    Toggle("Nur 50-m-Becken", isOn: Binding(
+                        get: { model.preferences.minLaneLength == 50 },
+                        set: { model.preferences.minLaneLength = $0 ? 50 : nil }))
                     Toggle("Eingeschränkte Wasserfläche zählt", isOn: $model.preferences.includeLimited)
                     Toggle("Volle Bäder ausblenden", isOn: $model.preferences.avoidCrowded)
+                    Toggle("Frauenschwimmen zählt", isOn: $model.preferences.includeWomenOnly)
+                    Toggle("Geschlossene Bäder zeigen", isOn: $model.preferences.showOutOfService)
+                } header: {
+                    Text("Bäder")
+                } footer: {
+                    Text("„Nur 50-m-Becken“ ist derselbe Filter wie der 50-m-Chip auf der Startseite. Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison.")
                 }
 
                 Section("Nur Bäder mit …") {
-                    ForEach(Feature.allCases) { f in
+                    ForEach(Feature.allCases.filter { $0 != .lane50 && $0 != .lane25 }) { f in
                         Toggle(isOn: Binding(
                             get: { model.preferences.requiredFeatures.contains(f) },
                             set: { on in
@@ -76,7 +80,7 @@ struct SearchScreen: View {
 
     private var results: [SwimPlan] {
         let q = query.trimmingCharacters(in: .whitespaces).lowercased()
-        let all = model.plans.sorted { $0.pool.name < $1.pool.name }
+        let all = model.allPlans.sorted { $0.pool.name < $1.pool.name }
         guard !q.isEmpty else { return all }
         return all.filter {
             $0.pool.name.lowercased().contains(q)
@@ -93,7 +97,7 @@ struct SearchScreen: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(plan.pool.name).foregroundStyle(.primary)
-                            Text([plan.pool.type, plan.pool.district].compactMap { $0 }.joined(separator: " · "))
+                            Text([plan.pool.type, plan.statusLine].compactMap { $0 }.joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -108,4 +112,12 @@ struct SearchScreen: View {
             }
         }
     }
+}
+
+#Preview("Einstellungen") {
+    SettingsScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
+}
+
+#Preview("Suche") {
+    SearchScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }

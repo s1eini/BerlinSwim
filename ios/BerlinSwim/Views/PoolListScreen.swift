@@ -7,9 +7,8 @@ struct PoolListScreen: View {
     @State private var showAll = false
 
     private var favorites: [SwimPlan] { model.plans.filter { model.isFavorite($0.pool) } }
-    private var hero: SwimPlan? { model.plans.first.flatMap { $0.status <= .tight ? $0 : nil } }
     private var reachable: [SwimPlan] {
-        model.plans.filter { !model.isFavorite($0.pool) && $0.status <= .tight && $0.pool.id != hero?.pool.id }
+        model.plans.filter { !model.isFavorite($0.pool) && $0.status <= .tight }
     }
     private var others: [SwimPlan] {
         model.plans.filter { !model.isFavorite($0.pool) && $0.status > .tight }
@@ -22,10 +21,6 @@ struct PoolListScreen: View {
                 LazyVStack(spacing: 14) {
                     header
                     FilterBar()
-                    if let best = hero {
-                        NavigationLink(value: best.pool) { HeroCard(plan: best) }
-                            .buttonStyle(.plain)
-                    }
                     if let error = model.errorMessage {
                         Label(error, systemImage: "wifi.exclamationmark")
                             .font(.footnote)
@@ -68,7 +63,7 @@ struct PoolListScreen: View {
                 .font(.system(size: 15, weight: .semibold)).textCase(.uppercase).opacity(0.85)
             Text("Schwimmen gehen?")
                 .font(.system(size: 34, weight: .bold))
-            Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.title)")
+            Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")
                 .font(.subheadline).opacity(0.85)
             if model.locationDenied {
                 Text("Standort nicht freigegeben – rechne ab Alexanderplatz")
@@ -129,79 +124,43 @@ struct PoolListScreen: View {
     }
 }
 
-/// Big "current location" style card for the top recommendation.
-struct HeroCard: View {
-    let plan: SwimPlan
-
-    var body: some View {
-        VStack(spacing: 6) {
-            Text(plan.pool.shortName)
-                .font(.title2.weight(.semibold))
-                .multilineTextAlignment(.center)
-            StatusLabel(status: plan.status)
-                .font(.subheadline.weight(.semibold))
-                .padding(.top, 6)
-            Text(plan.headline)
-                .font(.system(size: 64, weight: .thin))
-                .contentTransition(.numericText())
-            if !plan.subline.isEmpty {
-                Text(plan.subline)
-                    .font(.subheadline)
-                    .multilineTextAlignment(.center)
-            }
-            HStack(spacing: 14) {
-                Label(plan.travelText, systemImage: "location.fill")
-                if let lane = plan.window?.laneLength { Label("\(lane) m", systemImage: "figure.pool.swim") }
-                if let temp = plan.pool.waterTempC { Label(Fmt.temperature(temp), systemImage: "thermometer.medium") }
-            }
-            .font(.footnote.weight(.medium))
-            .opacity(0.9)
-            .padding(.top, 4)
-            if let o = plan.occupancy { OccupancyMeter(o).font(.footnote.weight(.medium)).padding(.top, 2) }
-        }
-        .foregroundStyle(.white)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 22)
-        .padding(.horizontal, 16)
-        .glassEffect(.clear, in: .rect(cornerRadius: 28))
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// Compact list card, like a city row in the Weather app.
+/// List card, like a city row in the Weather app: full name and status on top, facts as chips.
 struct PoolCard: View {
     @Environment(AppModel.self) private var model
     let plan: SwimPlan
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 6) {
-                    Text(plan.pool.shortName).font(.title3.weight(.semibold)).lineLimit(1)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(plan.pool.shortName)
+                        .font(.title3.weight(.semibold))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     if model.isFavorite(plan.pool) { Image(systemName: "star.fill").font(.caption) }
                 }
-                Text([plan.pool.district, plan.travelText + " " + model.preferences.travelMode.title]
-                    .compactMap { $0 }.joined(separator: " · "))
-                    .font(.footnote).opacity(0.85)
-                    .lineLimit(1)
-                FlowLayout(spacing: 6) {
-                    if let lane = plan.pool.laneLength { FactChip(text: "\(lane) m") }
-                    if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
-                    if let o = plan.occupancy { FactChip(text: o.shortTitle, dot: o.color) }
-                    if !plan.pool.warnings.isEmpty { FactChip(text: "Hinweis", symbol: "exclamationmark.triangle.fill") }
+                Spacer(minLength: 4)
+                VStack(alignment: .trailing, spacing: 2) {
+                    StatusLabel(status: plan.status)
+                        .font(.subheadline.weight(.semibold))
+                    if let detail = plan.statusDetail {
+                        Text(detail)
+                            .font(.title3.weight(.light).monospacedDigit())
+                            .contentTransition(.numericText())
+                    }
                 }
-                .padding(.top, 2)
-                if !plan.subline.isEmpty {
-                    Text(plan.subline).font(.footnote.weight(.semibold)).lineLimit(2)
-                }
+                .fixedSize()
             }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(plan.headline)
-                    .font(.system(size: plan.headline.count > 8 ? 24 : 30, weight: .light).monospacedDigit())
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                StatusLabel(status: plan.status)
-                    .font(.caption.weight(.semibold))
+            FlowLayout(spacing: 6) {
+                FactChip(text: plan.travelText, symbol: model.preferences.travelMode.symbol)
+                if let lane = plan.window?.laneLength ?? plan.pool.laneLength { FactChip(text: "\(lane) m") }
+                if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
+                if plan.status <= .tight, let o = plan.occupancy { FactChip(text: o.shortTitle, symbol: "person.2.fill", tint: o.color) }
+                if let w = plan.womenOnlyText { FactChip(text: w, symbol: "figure.stand.dress") }
+                if plan.window?.isWomenOnly == true { FactChip(text: "nur Frauen", symbol: "figure.stand.dress") }
+                if !plan.pool.warnings.isEmpty, plan.status != .closed {
+                    FactChip(text: "Hinweis", symbol: "exclamationmark.circle")
+                }
             }
         }
         .foregroundStyle(.white)
@@ -219,7 +178,7 @@ struct PoolCard: View {
 struct FilterBar: View {
     @Environment(AppModel.self) private var model
 
-    private let quick: [Feature] = [.lane50, .lane25, .sauna, .diving, .toddler, .accessible]
+    private let quick: [Feature] = [.sauna, .accessible]
 
     var body: some View {
         @Bindable var model = model
@@ -240,9 +199,12 @@ struct FilterBar: View {
                     } label: {
                         pickerChip(Fmt.minutes(model.preferences.trainingMinutes), "timer")
                     }
+                    // 50 m = lane-length minimum (same setting the planner uses per pool area)
                     Button {
-                        withAnimation(.snappy) { model.preferences.avoidCrowded.toggle() }
-                    } label: { chip("Nicht voll", "person.2.slash", active: model.preferences.avoidCrowded) }
+                        withAnimation(.snappy) {
+                            model.preferences.minLaneLength = model.preferences.minLaneLength == 50 ? nil : 50
+                        }
+                    } label: { chip("50 m", "figure.pool.swim", active: model.preferences.minLaneLength == 50) }
                     .buttonStyle(.plain)
                     ForEach(quick) { f in
                         let on = model.preferences.requiredFeatures.contains(f)
@@ -254,6 +216,10 @@ struct FilterBar: View {
                         } label: { chip(f.title, f.symbol, active: on) }
                         .buttonStyle(.plain)
                     }
+                    Button {
+                        withAnimation(.snappy) { model.preferences.avoidCrowded.toggle() }
+                    } label: { chip("Nicht voll", "person.2.slash", active: model.preferences.avoidCrowded) }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.vertical, 4)
@@ -287,21 +253,40 @@ struct FilterBar: View {
     }
 }
 
-/// Small capsule for facts on a card (lane, temperature, occupancy, notice).
-struct FactChip: View {
-    let text: String
-    var dot: Color? = nil
-    var symbol: String? = nil
+// MARK: - Previews
 
-    var body: some View {
-        HStack(spacing: 4) {
-            if let dot { Circle().fill(dot).frame(width: 7, height: 7) }
-            if let symbol { Image(systemName: symbol).foregroundStyle(.yellow) }
-            Text(text)
+#Preview("Startseite · 17:30") {
+    RootView().environment(AppModel.preview())
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Startseite · 21:15") {
+    RootView().environment(AppModel.preview(hour: 21, minute: 15))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Karten – alle Zustände") {
+    let model = AppModel.preview { $0.showOutOfService = true }
+    // one card per status, plus a women-only hint and a long name if available
+    let byStatus = Dictionary(grouping: model.plans, by: \.status).compactMap { $0.value.first }
+        .sorted { $0.status < $1.status }
+    let shown = Set(byStatus.map(\.id))
+    let extras = model.plans.filter { !shown.contains($0.id) && ($0.womenOnlyToday != nil || $0.pool.shortName.count > 35) }
+    ScrollView {
+        VStack(spacing: 14) {
+            ForEach(byStatus + extras.prefix(2)) { PoolCard(plan: $0) }
         }
-        .font(.caption.weight(.medium).monospacedDigit())
-        .padding(.horizontal, 8).padding(.vertical, 4)
-        .background(.white.opacity(0.16), in: .capsule)
-        .fixedSize()
+        .padding(16)
     }
+    .background(WaterBackground(status: .goNow, date: PreviewData.now()).ignoresSafeArea())
+    .environment(model)
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Filterleiste") {
+    FilterBar()
+        .padding()
+        .background(WaterBackground(status: .goNow, date: PreviewData.now()))
+        .environment(AppModel.preview { $0.minLaneLength = 50 })
+        .preferredColorScheme(.dark)
 }

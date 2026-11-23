@@ -13,6 +13,16 @@ public enum TravelMode: String, Codable, CaseIterable, Sendable, Identifiable {
         }
     }
 
+    /// "Anreise mit ÖPNV", "Anreise zu Fuß"
+    public var arrivalText: String {
+        switch self {
+        case .walking: "Anreise zu Fuß"
+        case .cycling: "Anreise mit Rad"
+        case .transit: "Anreise mit ÖPNV"
+        case .driving: "Anreise mit Auto"
+        }
+    }
+
     public var symbol: String {
         switch self {
         case .walking: "figure.walk"
@@ -54,12 +64,16 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
     public var minimumUsefulMinutes: Int = 20
     /// Hide pools whose live occupancy is orange/red.
     public var avoidCrowded: Bool = false
+    /// Count women-only sessions ("Frauenschwimmen") as swimmable.
+    public var includeWomenOnly: Bool = false
+    /// Show pools that are closed for the season / long term.
+    public var showOutOfService: Bool = false
 
     public init() {}
 
     private enum CodingKeys: String, CodingKey {
         case trainingMinutes, changeMinutes, travelMode, minLaneLength, includeLimited
-        case requiredFeatures, favorites, minimumUsefulMinutes, avoidCrowded
+        case requiredFeatures, favorites, minimumUsefulMinutes, avoidCrowded, includeWomenOnly, showOutOfService
     }
 
     /// Tolerant decoding: missing keys (older app versions) fall back to defaults.
@@ -75,6 +89,11 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
         favorites = try c.decodeIfPresent(Set<Int>.self, forKey: .favorites) ?? []
         minimumUsefulMinutes = try c.decodeIfPresent(Int.self, forKey: .minimumUsefulMinutes) ?? d.minimumUsefulMinutes
         avoidCrowded = try c.decodeIfPresent(Bool.self, forKey: .avoidCrowded) ?? d.avoidCrowded
+        includeWomenOnly = try c.decodeIfPresent(Bool.self, forKey: .includeWomenOnly) ?? d.includeWomenOnly
+        showOutOfService = try c.decodeIfPresent(Bool.self, forKey: .showOutOfService) ?? d.showOutOfService
+        // The "50 m" filter used to be a feature; it's now the lane-length minimum.
+        if requiredFeatures.remove(.lane50) != nil { minLaneLength = 50 }
+        requiredFeatures.remove(.lane25)
     }
 }
 
@@ -114,6 +133,9 @@ public struct SwimPlan: Sendable, Identifiable, Hashable {
     public var closedReason: String?
     /// Live occupancy, if the site reports one for this pool.
     public var occupancy: Occupancy?
+    /// A women-only session still running/coming today that the plan does not count
+    /// (because `includeWomenOnly` is off) – shown as a hint.
+    public var womenOnlyToday: SwimWindow?
 }
 
 /// A run of back-to-back public slots in one area.
@@ -126,6 +148,12 @@ public struct SwimWindow: Sendable, Hashable {
     public var labels: [String]
 
     public var isLimited: Bool { kinds.contains(.limited) }
+    public var isWomenOnly: Bool { kinds.contains(.restricted) }
+}
+
+extension Slot {
+    /// "Frauenschwimmen", "Frauen" – women-only sessions.
+    var isWomenOnly: Bool { kind == .restricted && label.localizedCaseInsensitiveContains("frauen") }
 }
 
 public struct SwimPlanner: Sendable {
@@ -139,11 +167,23 @@ public struct SwimPlanner: Sendable {
 
     /// Merged public windows of a pool, sorted by start.
     public func windows(for pool: Pool) -> [SwimWindow] {
+        windows(for: pool) { s in
+            s.kind == .public || (s.kind == .limited && preferences.includeLimited)
+                || (preferences.includeWomenOnly && s.isWomenOnly)
+        }
+    }
+
+    /// Merged women-only windows (used for the hint when they're not counted).
+    public func womenOnlyWindows(for pool: Pool) -> [SwimWindow] {
+        windows(for: pool) { $0.isWomenOnly }
+    }
+
+    private func windows(for pool: Pool, where include: (Slot) -> Bool) -> [SwimWindow] {
         var result: [SwimWindow] = []
         for area in pool.swimAreas {
             if let min = preferences.minLaneLength, (area.laneLength ?? 0) < min { continue }
             let slots = area.slots
-                .filter { $0.kind == .public || ($0.kind == .limited && preferences.includeLimited) }
+                .filter(include)
                 .sorted { $0.start < $1.start }
             var current: SwimWindow?
             for s in slots {
@@ -176,7 +216,12 @@ public struct SwimPlanner: Sendable {
 
         let all = windows(for: pool)
         plan.nextWindow = all.first { $0.end > now }
-        if plan.status == .closed { return plan }
+        if plan.status == .closed {
+            // Closed today (Teamtag etc.): point to the next window on a day that isn't closed.
+            let closedDays = Set(pool.closures.flatMap(\.dates))
+            plan.nextWindow = all.first { $0.start > now && !closedDays.contains(calendar.dayString($0.start)) }
+            return plan
+        }
         if all.isEmpty {
             if pool.closedNow || pool.areas.isEmpty {
                 plan.status = .closed
@@ -219,6 +264,11 @@ public struct SwimPlanner: Sendable {
         }
         if let best { return best }
         if let tight { return tight }
+        if !preferences.includeWomenOnly {
+            plan.womenOnlyToday = womenOnlyWindows(for: pool).first {
+                $0.end.addingTimeInterval(-cutoff) > now && calendar.isDate($0.start, inSameDayAs: now)
+            }
+        }
         plan.status = .notToday
         plan.nextWindow = all.first { $0.start >= endOfToday } ?? plan.nextWindow
         return plan
@@ -228,6 +278,11 @@ public struct SwimPlanner: Sendable {
     public func plans(for pools: [Pool], now: Date, occupancy: [Int: Occupancy] = [:],
                       travel: (Pool) -> (TimeInterval, Bool)) -> [SwimPlan] {
         pools
+            .filter { pool in preferences.showOutOfService || !pool.isOutOfService }
+            .filter { pool in
+                guard let min = preferences.minLaneLength else { return true }
+                return pool.swimAreas.contains { ($0.laneLength ?? 0) >= min }
+            }
             .filter { pool in preferences.requiredFeatures.allSatisfy { pool.has($0) } }
             .filter { pool in !(preferences.avoidCrowded && occupancy[pool.id]?.isCrowded == true) }
             .map { pool in
@@ -237,6 +292,9 @@ public struct SwimPlanner: Sendable {
                     p.status = .closed
                     p.closedReason = reason
                     p.leaveBy = nil
+                    // Closed right now (weather / operations): next chance is another day.
+                    let tomorrow = calendar.startOfDay(for: now).addingTimeInterval(26 * 3600)
+                    p.nextWindow = windows(for: pool).first { $0.start >= calendar.startOfDay(for: tomorrow) }
                 } else {
                     p.occupancy = occupancy[pool.id]
                 }
