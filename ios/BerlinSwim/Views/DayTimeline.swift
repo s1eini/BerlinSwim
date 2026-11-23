@@ -86,7 +86,7 @@ struct DayTimeline: View {
             GeometryReader { geo in
                 ForEach(ticks, id: \.self) { h in
                     Text(String(format: "%02d", h))
-                        .font(.caption2.monospacedDigit())
+                        .font(.caption.monospacedDigit())
                         .opacity(0.6)
                         .fixedSize()
                         .position(x: CGFloat((Double(h) - startHour) / (endHour - startHour)) * geo.size.width, y: 6)
@@ -97,18 +97,18 @@ struct DayTimeline: View {
     }
 
     private var legend: some View {
-        HStack(spacing: 12) {
+        FlowLayout(spacing: 12) {
             legendItem(.public, "öffentlich")
             legendItem(.limited, "eingeschränkt")
             legendItem(.private, "Vereine")
             if plan.swimStart != nil {
                 HStack(spacing: 4) {
                     Capsule().fill(plan.status.color).frame(width: 12, height: 4)
-                    Text("dein Training")
+                    Text("Schwimmzeit")
                 }
             }
         }
-        .font(.caption2)
+        .font(.caption)
         .opacity(0.8)
     }
 
@@ -117,6 +117,7 @@ struct DayTimeline: View {
             RoundedRectangle(cornerRadius: 2).fill(color(for: kind)).frame(width: 10, height: 10)
             Text(title)
         }
+        .fixedSize()
     }
 
     private func color(for kind: Slot.Kind) -> Color {

@@ -8,3 +8,5 @@ xcuserdata/
 DerivedData/
 build/
 *.xcuserstate
+.build/
+.swiftpm/

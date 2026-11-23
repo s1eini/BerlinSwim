@@ -22,7 +22,7 @@ struct PoolListScreen: View {
                     header
                     FilterBar()
                     if let best = hero {
-                        NavigationLink(value: best.pool) { HeroCard(plan: best) }
+                        Button { model.openPoolID = best.pool.id } label: { HeroCard(plan: best) }
                             .buttonStyle(.plain)
                     }
                     if let error = model.errorMessage {
@@ -53,9 +53,6 @@ struct PoolListScreen: View {
             .scrollIndicators(.hidden)
             .background(WaterBackground(status: model.plans.first?.status, date: model.now).ignoresSafeArea())
             .refreshable { await model.refresh(force: true) }
-            .navigationDestination(for: Pool.self) { pool in
-                PoolPager(plans: model.plans, selected: pool)
-            }
             .toolbar(.hidden, for: .navigationBar)
         }
     }
@@ -94,7 +91,7 @@ struct PoolListScreen: View {
 
     private func cards(_ plans: [SwimPlan]) -> some View {
         ForEach(plans) { plan in
-            NavigationLink(value: plan.pool) { PoolCard(plan: plan) }
+            Button { model.openPoolID = plan.pool.id } label: { PoolCard(plan: plan) }
                 .buttonStyle(.plain)
                 .contextMenu {
                     Button(model.isFavorite(plan.pool) ? "Aus Favoriten entfernen" : "Zu Favoriten",

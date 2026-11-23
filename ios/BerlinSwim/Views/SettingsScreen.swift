@@ -89,10 +89,10 @@ struct SearchScreen: View {
     var body: some View {
         NavigationStack {
             List(results) { plan in
-                NavigationLink(value: plan.pool) {
+                Button { model.openPoolID = plan.pool.id } label: {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(plan.pool.name)
+                            Text(plan.pool.name).foregroundStyle(.primary)
                             Text([plan.pool.type, plan.pool.district].compactMap { $0 }.joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
@@ -103,7 +103,6 @@ struct SearchScreen: View {
             }
             .navigationTitle("Suche")
             .searchable(text: $query, prompt: "Bad, Bezirk, Ausstattung")
-            .navigationDestination(for: Pool.self) { PoolDetailView(pool: $0) }
         }
     }
 }

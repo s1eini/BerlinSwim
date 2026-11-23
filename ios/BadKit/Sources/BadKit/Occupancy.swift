@@ -10,15 +10,19 @@ public struct Occupancy: Sendable, Hashable {
     /// Threshold of the highest level ≈ capacity.
     public var capacity: Int?
     public var automatic: Bool
+    /// Set when the site reports level -2/-3 (closed for weather / operational reasons).
+    public var closedReason: String?
 
-    public init(level: Int?, count: Int?, capacity: Int?, automatic: Bool) {
+    public init(level: Int?, count: Int?, capacity: Int?, automatic: Bool, closedReason: String? = nil) {
         self.level = level
         self.count = count
         self.capacity = capacity
         self.automatic = automatic
+        self.closedReason = closedReason
     }
 
     public var isKnown: Bool { level != nil }
+    public var isClosed: Bool { closedReason != nil }
 
     /// 0…1 when a live counter is available.
     public var fraction: Double? {
@@ -29,20 +33,28 @@ public struct Occupancy: Sendable, Hashable {
     /// Level ≥ 3 (orange/red) counts as crowded.
     public var isCrowded: Bool { (level ?? 0) >= 3 }
 
+    /// Same wording as berlinerbaeder.de.
     public var title: String {
         switch level {
-        case 1?: "wenig los"
-        case 2?: "mäßig voll"
-        case 3?: "voll"
-        case 4?: "sehr voll"
-        default: "unbekannt"
+        case 1?: "Geringe Auslastung"
+        case 2?: "Mittlere Auslastung"
+        case 3?: "Erhöhte Auslastung"
+        case 4?: "Maximale Auslastung"
+        default: closedReason ?? "unbekannt"
         }
     }
 
-    public var detail: String {
-        if let f = fraction { return "\(title) · ca. \(Int((f * 100).rounded())) %" }
-        return title
+    public var shortTitle: String {
+        switch level {
+        case 1?: "gering"
+        case 2?: "mittel"
+        case 3?: "erhöht"
+        case 4?: "voll"
+        default: "–"
+        }
     }
+
+    public var detail: String { title }
 
     public var color: Color {
         switch level {
@@ -70,7 +82,13 @@ public struct Occupancy: Sendable, Hashable {
         let rows = try JSONDecoder().decode([Row].self, from: data)
         var out: [Int: Occupancy] = [:]
         for r in rows {
-            guard let id = Int(r.id), let level = r.level, level > 0 else { continue }
+            guard let id = Int(r.id), let level = r.level else { continue }
+            if level == -2 || level == -3 {
+                out[id] = Occupancy(level: nil, count: nil, capacity: nil, automatic: false,
+                                    closedReason: level == -2 ? "Wetterbedingt geschlossen" : "Betriebsbedingt geschlossen")
+                continue
+            }
+            guard level > 0 else { continue }
             let automatic = r.automatic ?? false
             out[id] = Occupancy(
                 level: min(level, 4),
@@ -129,7 +147,7 @@ public struct OccupancyMeter: View {
             } else {
                 Circle().fill(occupancy.color).frame(width: 8, height: 8)
             }
-            Text(compact ? occupancy.title : occupancy.detail)
+            Text(compact ? occupancy.shortTitle : occupancy.detail)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Auslastung: \(occupancy.detail)")

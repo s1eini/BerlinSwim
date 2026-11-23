@@ -1,7 +1,8 @@
 import BadKit
+import MapKit
 import SwiftUI
 
-/// Swipe horizontally between pools, like cities in the Weather app.
+/// Swipe horizontally between pools, like cities in the Weather app. Shown in a sheet.
 struct PoolPager: View {
     let plans: [SwimPlan]
     @State var selected: Pool?
@@ -25,22 +26,25 @@ struct PoolPager: View {
         .scrollTargetBehavior(.paging)
         .scrollPosition(id: $selected)
         .scrollIndicators(.hidden)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
+/// Type scale used on this screen (keep it small):
+/// .title (name) · .headline (section titles, status) · .subheadline (content) · .footnote (secondary)
 struct PoolDetailView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
     let pool: Pool
 
     private var plan: SwimPlan { model.plan(for: pool) }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                hero
+                header
                 if !pool.notices.isEmpty {
                     DetailSection(title: "Hinweise") { notices }
                 }
@@ -55,35 +59,53 @@ struct PoolDetailView: View {
                     DetailSection(title: "Wassertemperatur") { water }
                 }
                 if !pool.equipment.isEmpty || !pool.extras.isEmpty {
-                    DetailSection(title: "Ausstattung") { FeatureGrid(items: pool.equipment, extras: pool.extras) }
+                    DetailSection(title: "Ausstattung") { FeatureChips(items: pool.equipment, notes: pool.extras) }
+                        .id("equipment")
                 }
                 if !pool.accessibility.isEmpty {
-                    DetailSection(title: "Barrierefreiheit") { FeatureGrid(items: pool.accessibility, extras: []) }
+                    DetailSection(title: "Barrierefreiheit") { FeatureChips(items: pool.accessibility, notes: []) }
                 }
-                DetailSection(title: "Anfahrt") { directions }
+                DetailSection(title: "Anfahrt", padded: false) { directions }
                 links
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 32)
+            .padding(.bottom, 40)
         }
         .scrollIndicators(.hidden)
         .background(WaterBackground(status: plan.status, date: model.now).ignoresSafeArea())
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+        #if DEBUG
+        .task {
+            // Screenshot aid: launch with `-detailScroll equipment`
+            if let anchor = UserDefaults.standard.string(forKey: "detailScroll") {
+                try? await Task.sleep(for: .seconds(1))
+                proxy.scrollTo(anchor, anchor: .top)
+            }
+        }
+        #endif
+        }
+    }
+
+    // MARK: Header
+
+    private var header: some View {
+        VStack(spacing: 4) {
+            HStack {
+                Button("Schließen", systemImage: "xmark") { dismiss() }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.circle)
+                Spacer()
                 Button(model.isFavorite(pool) ? "Favorit entfernen" : "Favorit",
                        systemImage: model.isFavorite(pool) ? "star.fill" : "star") {
                     model.toggleFavorite(pool)
                 }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
             }
-        }
-    }
-
-    // MARK: Hero
-
-    private var hero: some View {
-        VStack(spacing: 4) {
+            .font(.headline)
             Text(pool.shortName)
-                .font(.system(size: 30, weight: .semibold))
+                .font(.title.weight(.semibold))
                 .multilineTextAlignment(.center)
             Text([pool.type, pool.district].compactMap { $0 }.joined(separator: " · "))
                 .font(.subheadline).opacity(0.85)
@@ -91,16 +113,15 @@ struct PoolDetailView: View {
                 .font(.headline)
                 .padding(.top, 10)
             Text(plan.headline)
-                .font(.system(size: 76, weight: .thin))
+                .font(.system(size: 72, weight: .thin))
                 .lineLimit(1).minimumScaleFactor(0.5)
             if !plan.subline.isEmpty {
                 Text(plan.subline).font(.subheadline).multilineTextAlignment(.center).opacity(0.9)
             }
         }
         .foregroundStyle(.white)
-        .shadow(color: .black.opacity(0.15), radius: 4)
         .frame(maxWidth: .infinity)
-        .padding(.top, 20)
+        .padding(.top, 12)
     }
 
     // MARK: Sections
@@ -112,19 +133,18 @@ struct PoolDetailView: View {
                     if n.severity != .info {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
                     }
-                    Text(n.text).font(.subheadline)
+                    Text(n.text)
                 }
+                .font(.subheadline)
             }
         }
     }
 
     private func occupancy(_ o: Occupancy) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            OccupancyMeter(o).font(.subheadline.weight(.medium))
-            Text(o.automatic
-                 ? "Live-Zähler der Berliner Bäder-Betriebe\(o.count.map { " · \($0) Gäste" } ?? "")"
-                 : "Ampel der Berliner Bäder-Betriebe")
-                .font(.caption).opacity(0.75)
+            OccupancyMeter(o).font(.subheadline)
+            Text(o.automatic ? "Live-Zähler der Berliner Bäder-Betriebe" : "Angabe der Berliner Bäder-Betriebe")
+                .font(.footnote).opacity(0.75)
         }
     }
 
@@ -149,12 +169,12 @@ struct PoolDetailView: View {
                     }
                     Spacer()
                 }
-                .font(.body.monospacedDigit())
+                .font(.subheadline.monospacedDigit())
                 .padding(.vertical, 8)
                 if offset < 6 { Divider().overlay(.white.opacity(0.2)) }
             }
             Text("* zeitweise eingeschränkte Wasserfläche · Einlass bis \(pool.rules.entryCutoffMin) min, Badeschluss \(pool.rules.exitBeforeCloseMin) min vor Ende")
-                .font(.caption).opacity(0.7)
+                .font(.footnote).opacity(0.7)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 8)
         }
@@ -164,23 +184,43 @@ struct PoolDetailView: View {
         HStack(alignment: .top, spacing: 12) {
             ForEach(pool.waterTemps, id: \.self) { w in
                 VStack(spacing: 2) {
-                    Text(Fmt.temperature(w.tempC)).font(.title2.weight(.light)).monospacedDigit()
-                    Text(w.basin).font(.caption).opacity(0.8).lineLimit(2).multilineTextAlignment(.center)
+                    Text(Fmt.temperature(w.tempC)).font(.headline.monospacedDigit())
+                    Text(w.basin).font(.footnote).opacity(0.8).lineLimit(2).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
             }
         }
     }
 
+    @ViewBuilder
     private var directions: some View {
-        HStack(alignment: .center) {
-            Text(pool.address).font(.subheadline)
-            Spacer()
-            Button("Karten", systemImage: "arrow.triangle.turn.up.right.diamond.fill") {
-                RoutingService.openDirections(to: pool, mode: model.preferences.travelMode)
+        let mode = model.preferences.travelMode
+        VStack(alignment: .leading, spacing: 0) {
+            if let lat = pool.lat, let lon = pool.lon {
+                let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                Map(initialPosition: .region(MKCoordinateRegion(center: coord, latitudinalMeters: 900, longitudinalMeters: 900)),
+                    interactionModes: []) {
+                    Marker(pool.shortName, systemImage: "figure.pool.swim", coordinate: coord)
+                        .tint(plan.status.color)
+                }
+                .mapStyle(.standard(pointsOfInterest: .excludingAll))
+                .frame(height: 180)
+                .overlay(alignment: .bottomTrailing) {
+                    Button {
+                        RoutingService.openDirections(to: pool, mode: mode)
+                    } label: {
+                        Label("\(mode.title) · \(plan.travelText)", systemImage: mode.symbol)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.glassProminent)
+                    .padding(10)
+                }
             }
-            .buttonStyle(.glass)
+            Text(pool.address)
+                .font(.subheadline)
+                .padding(16)
         }
+        .clipShape(.rect(cornerRadius: 20))
     }
 
     private var links: some View {
@@ -192,6 +232,7 @@ struct PoolDetailView: View {
             ShareLink(item: pool.url) { Label("Teilen", systemImage: "square.and.arrow.up") }
                 .buttonStyle(.glass)
         }
+        .font(.subheadline)
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity)
     }
@@ -209,9 +250,10 @@ struct StatusLabel: View {
     }
 }
 
-/// Section with the title above the glass card (Weather-app module style, but readable).
+/// Section with the title above the glass card.
 struct DetailSection<Content: View>: View {
     let title: String
+    var padded = true
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -222,32 +264,77 @@ struct DetailSection<Content: View>: View {
                 .padding(.leading, 4)
             content
                 .foregroundStyle(.white)
-                .padding(16)
+                .padding(padded ? 16 : 0)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .glassEffect(.regular.tint(.black.opacity(0.08)), in: .rect(cornerRadius: 20))
         }
     }
 }
 
-/// Two-column list of features plus free-text extras.
-struct FeatureGrid: View {
+/// Feature chips, with free-text notes below a divider.
+struct FeatureChips: View {
     let items: [String]
-    let extras: [String]
+    let notes: [String]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !items.isEmpty {
-                LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
-                          alignment: .leading, spacing: 8) {
-                    ForEach(items, id: \.self) { Text($0).font(.subheadline) }
+                FlowLayout(spacing: 6) {
+                    ForEach(items, id: \.self) { item in
+                        Text(item)
+                            .font(.footnote.weight(.medium))
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(.white.opacity(0.16), in: .capsule)
+                    }
                 }
             }
-            if !extras.isEmpty {
-                if !items.isEmpty { Divider().overlay(.white.opacity(0.2)) }
+            if !notes.isEmpty {
+                if !items.isEmpty { Divider().overlay(.white.opacity(0.25)) }
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(extras.prefix(6), id: \.self) { Text($0).font(.footnote).opacity(0.8) }
+                    ForEach(notes.prefix(6), id: \.self) { Text($0) }
                 }
+                .font(.footnote)
+                .opacity(0.8)
             }
         }
+    }
+}
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(0, rows.count - 1))
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in arrange(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for i in row.indices {
+                let size = subviews[i].sizeThatFits(.unspecified)
+                subviews[i].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private struct Row { var indices: [Int] = []; var width: CGFloat = 0; var height: CGFloat = 0 }
+
+    private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = [Row()]
+        for (i, sv) in subviews.enumerated() {
+            let size = sv.sizeThatFits(.unspecified)
+            if rows[rows.count - 1].width + size.width > width, !rows[rows.count - 1].indices.isEmpty {
+                rows.append(Row())
+            }
+            rows[rows.count - 1].indices.append(i)
+            rows[rows.count - 1].width += size.width + spacing
+            rows[rows.count - 1].height = max(rows[rows.count - 1].height, size.height)
+        }
+        return rows
     }
 }

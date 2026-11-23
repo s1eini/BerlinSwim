@@ -58,14 +58,11 @@ struct RootView: View {
             get: { model.openPoolID.flatMap { id in model.pools.first { $0.id == id } } },
             set: { model.openPoolID = $0?.id }
         )) { pool in
-            NavigationStack {
-                PoolDetailView(pool: pool)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button("Fertig", systemImage: "xmark") { model.openPoolID = nil }
-                        }
-                    }
-            }
+            // One detail sheet for list, map, search and widget taps; swipe sideways between pools.
+            let plans = model.plans.contains { $0.pool.id == pool.id } ? model.plans : [model.plan(for: pool)]
+            PoolPager(plans: plans, selected: pool)
+                .environment(model)
+                .presentationDragIndicator(.visible)
         }
     }
 }

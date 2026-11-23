@@ -238,7 +238,13 @@ public struct SwimPlanner: Sendable {
             .map { pool in
                 let (t, est) = travel(pool)
                 var p = plan(for: pool, now: now, travel: t, travelIsEstimate: est)
-                p.occupancy = occupancy[pool.id]
+                if let o = occupancy[pool.id], let reason = o.closedReason {
+                    p.status = .closed
+                    p.closedReason = reason
+                    p.leaveBy = nil
+                } else {
+                    p.occupancy = occupancy[pool.id]
+                }
                 return p
             }
             .sorted { a, b in

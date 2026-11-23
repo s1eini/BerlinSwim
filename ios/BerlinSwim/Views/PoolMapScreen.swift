@@ -8,7 +8,6 @@ struct PoolMapScreen: View {
         center: CLLocationCoordinate2D(latitude: 52.505, longitude: 13.40),
         span: MKCoordinateSpan(latitudeDelta: 0.32, longitudeDelta: 0.42))))
     @State private var selection: Int?
-    @State private var detail: Pool?
 
     var body: some View {
         Map(position: $position, selection: $selection) {
@@ -34,7 +33,7 @@ struct PoolMapScreen: View {
         }
         .safeAreaInset(edge: .bottom) {
             if let id = selection, let plan = model.plans.first(where: { $0.pool.id == id }) {
-                Button { detail = plan.pool } label: {
+                Button { model.openPoolID = plan.pool.id } label: {
                     PoolCard(plan: plan)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -45,10 +44,6 @@ struct PoolMapScreen: View {
             }
         }
         .animation(.snappy, value: selection)
-        .sheet(item: $detail) { pool in
-            NavigationStack { PoolDetailView(pool: pool) }
-                .presentationDetents([.medium, .large])
-        }
     }
 }
 
