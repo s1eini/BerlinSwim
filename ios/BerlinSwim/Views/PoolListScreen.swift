@@ -180,18 +180,17 @@ struct PoolCard: View {
                     Text(plan.pool.shortName).font(.title3.weight(.semibold)).lineLimit(1)
                     if model.isFavorite(plan.pool) { Image(systemName: "star.fill").font(.caption) }
                 }
-                Text([plan.pool.district, plan.travelText + " " + model.preferences.travelMode.title.lowercased()]
+                Text([plan.pool.district, plan.travelText + " " + model.preferences.travelMode.title]
                     .compactMap { $0 }.joined(separator: " · "))
                     .font(.footnote).opacity(0.85)
-                HStack(spacing: 10) {
-                    if let lane = plan.pool.laneLength { Text("\(lane) m") }
-                    if let t = plan.pool.waterTempC { Text(Fmt.temperature(t)) }
-                    if let o = plan.occupancy { OccupancyMeter(o, compact: true) }
-                    if !plan.pool.warnings.isEmpty {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
-                    }
+                    .lineLimit(1)
+                FlowLayout(spacing: 6) {
+                    if let lane = plan.pool.laneLength { FactChip(text: "\(lane) m") }
+                    if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
+                    if let o = plan.occupancy { FactChip(text: o.shortTitle, dot: o.color) }
+                    if !plan.pool.warnings.isEmpty { FactChip(text: "Hinweis", symbol: "exclamationmark.triangle.fill") }
                 }
-                .font(.footnote.weight(.medium).monospacedDigit()).opacity(0.9)
+                .padding(.top, 2)
                 if !plan.subline.isEmpty {
                     Text(plan.subline).font(.footnote.weight(.semibold)).lineLimit(2)
                 }
@@ -285,5 +284,24 @@ struct FilterBar: View {
         .foregroundStyle(.white)
         .padding(.horizontal, 12).padding(.vertical, 8)
         .glassEffect(.regular.tint(.black.opacity(0.12)).interactive(), in: .capsule)
+    }
+}
+
+/// Small capsule for facts on a card (lane, temperature, occupancy, notice).
+struct FactChip: View {
+    let text: String
+    var dot: Color? = nil
+    var symbol: String? = nil
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if let dot { Circle().fill(dot).frame(width: 7, height: 7) }
+            if let symbol { Image(systemName: symbol).foregroundStyle(.yellow) }
+            Text(text)
+        }
+        .font(.caption.weight(.medium).monospacedDigit())
+        .padding(.horizontal, 8).padding(.vertical, 4)
+        .background(.white.opacity(0.16), in: .capsule)
+        .fixedSize()
     }
 }

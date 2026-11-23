@@ -106,6 +106,8 @@ public actor OccupancyStore {
 
     private var cache: [Int: Occupancy] = [:]
     private var fetchedAt: Date?
+    /// Last fetch/parse error, for debugging.
+    public private(set) var lastError: Error?
 
     /// Fetches at most every `maxAge` seconds; on failure keeps the last values.
     public func current(maxAge: TimeInterval = 120) async -> [Int: Occupancy] {
@@ -113,11 +115,13 @@ public actor OccupancyStore {
         var request = URLRequest(url: Self.feedURL)
         request.timeoutInterval = 10
         request.cachePolicy = .reloadIgnoringLocalCacheData
-        if let (data, response) = try? await URLSession.shared.data(for: request),
-           (response as? HTTPURLResponse)?.statusCode == 200,
-           let parsed = try? Occupancy.parse(data) {
-            cache = parsed
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+            cache = try Occupancy.parse(data)
             fetchedAt = Date()
+        } catch {
+            lastError = error
         }
         return cache
     }

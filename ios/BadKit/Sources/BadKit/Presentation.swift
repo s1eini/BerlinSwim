@@ -73,7 +73,7 @@ public extension SwimPlan {
     var headline: String {
         switch status {
         case .goNow where usableMinutes >= 180: "bis \(swimEnd.map(Fmt.clock) ?? "–")"
-        case .goNow, .tight: Fmt.minutes(usableMinutes)
+        case .goNow, .tight: "noch \(Fmt.minutes(usableMinutes))"
         case .later: window.map { "ab \(Fmt.clock($0.start))" } ?? "–"
         case .notToday: nextWindow.map { Fmt.weekdayClock($0.start) } ?? "–"
         case .closed: "zu"

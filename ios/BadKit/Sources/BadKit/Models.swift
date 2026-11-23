@@ -56,9 +56,6 @@ public struct Pool: Codable, Sendable, Identifiable, Hashable {
     public var rules: Rules
     public var areas: [Area]
 
-    public static func == (a: Pool, b: Pool) -> Bool { a.id == b.id }
-    public func hash(into h: inout Hasher) { h.combine(id) }
-
     /// "Kombibad Seestraße - Hallenbad" -> "Kombibad Seestraße"
     public var shortName: String {
         name.replacingOccurrences(of: " - Hallenbad", with: "")

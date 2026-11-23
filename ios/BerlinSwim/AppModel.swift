@@ -5,6 +5,10 @@ import Observation
 import SwiftUI
 import WidgetKit
 
+import os
+
+private let log = Logger(subsystem: "de.eatbl.BerlinSwim", category: "model")
+
 @MainActor
 @Observable
 final class AppModel {
@@ -70,16 +74,17 @@ final class AppModel {
 
     // MARK: - Lifecycle
 
+    /// Starts long-running work in tasks owned by the model, so it survives view re-creation
+    /// (a cancelled `.task` must not stop location updates or the occupancy refresh loop).
     func start() async {
         guard !started else { return }
         started = true
         feed = await PoolStore.shared.cached()
         recompute()
-        async let o: Void = refreshOccupancy() // independent of the pools.json fetch
-        async let r: Void = refresh()
-        async let l: Void = trackLocation()
-        async let c: Void = tick()
-        _ = await (o, r, l, c)
+        Task { await refreshOccupancy() } // independent of the pools.json fetch
+        Task { await refresh() }
+        Task { await trackLocation() }
+        Task { await tick() }
     }
 
     func refresh(force: Bool = false) async {
@@ -100,12 +105,14 @@ final class AppModel {
 
     private func refreshOccupancy() async {
         occupancy = await OccupancyStore.shared.current()
+        let err = await OccupancyStore.shared.lastError
+        log.notice("occupancy: \(self.occupancy.count, privacy: .public) pools, error: \(String(describing: err), privacy: .public)")
         recompute()
     }
 
     /// Re-evaluate every 30 s so "noch X min" stays current.
     private func tick() async {
-        while !Task.isCancelled {
+        while true {
             try? await Task.sleep(for: .seconds(30))
             await refreshOccupancy() // cached for 2 min inside the store
         }

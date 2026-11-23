@@ -114,11 +114,6 @@ public struct SwimPlan: Sendable, Identifiable, Hashable {
     public var closedReason: String?
     /// Live occupancy, if the site reports one for this pool.
     public var occupancy: Occupancy?
-
-    public static func == (a: SwimPlan, b: SwimPlan) -> Bool {
-        a.pool.id == b.pool.id && a.status == b.status && a.usableMinutes == b.usableMinutes && a.travel == b.travel
-    }
-    public func hash(into h: inout Hasher) { h.combine(pool.id) }
 }
 
 /// A run of back-to-back public slots in one area.

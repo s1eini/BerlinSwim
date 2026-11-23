@@ -5,11 +5,12 @@ import SwiftUI
 /// Swipe horizontally between pools, like cities in the Weather app. Shown in a sheet.
 struct PoolPager: View {
     let plans: [SwimPlan]
-    @State var selected: Pool?
+    /// Scroll position by pool id (stable across data refreshes).
+    @State var selected: Int?
 
     init(plans: [SwimPlan], selected: Pool) {
         self.plans = plans
-        _selected = State(initialValue: selected)
+        _selected = State(initialValue: selected.id)
     }
 
     var body: some View {
@@ -18,7 +19,7 @@ struct PoolPager: View {
                 ForEach(plans) { plan in
                     PoolDetailView(pool: plan.pool)
                         .containerRelativeFrame(.horizontal)
-                        .id(Optional(plan.pool))
+                        .id(plan.pool.id)
                 }
             }
             .scrollTargetLayout()
@@ -30,7 +31,7 @@ struct PoolPager: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
-            if let pool = selected {
+            if let pool = plans.first(where: { $0.pool.id == selected })?.pool {
                 ToolbarItem(placement: .topBarTrailing) { FavoriteButton(pool: pool) }
             }
         }
