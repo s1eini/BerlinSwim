@@ -6,20 +6,20 @@ public enum TravelMode: String, Codable, CaseIterable, Sendable, Identifiable {
 
     public var title: String {
         switch self {
-        case .walking: "Zu Fuß"
-        case .cycling: "Fahrrad"
-        case .transit: "ÖPNV"
-        case .driving: "Auto"
+        case .walking: L("Zu Fuß")
+        case .cycling: L("Fahrrad")
+        case .transit: L("ÖPNV")
+        case .driving: L("Auto")
         }
     }
 
     /// "Anreise mit ÖPNV", "Anreise zu Fuß"
     public var arrivalText: String {
         switch self {
-        case .walking: "Anreise zu Fuß"
-        case .cycling: "Anreise mit Rad"
-        case .transit: "Anreise mit ÖPNV"
-        case .driving: "Anreise mit Auto"
+        case .walking: L("Anreise zu Fuß")
+        case .cycling: L("Anreise mit Rad")
+        case .transit: L("Anreise mit ÖPNV")
+        case .driving: L("Anreise mit Auto")
         }
     }
 
@@ -226,7 +226,7 @@ public struct SwimPlanner: Sendable {
         if all.isEmpty {
             if pool.closedNow || pool.areas.isEmpty {
                 plan.status = .closed
-                plan.closedReason = pool.notices.first { $0.severity == .closed }?.text ?? "Aktuell keine Öffnungszeiten"
+                plan.closedReason = pool.notices.first { $0.severity == .closed }?.text ?? L("Aktuell keine Öffnungszeiten")
             }
             return plan
         }

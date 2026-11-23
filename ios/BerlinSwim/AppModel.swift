@@ -101,8 +101,8 @@ final class AppModel {
             errorMessage = nil
         } catch {
             errorMessage = feed == nil
-                ? "Daten konnten nicht geladen werden."
-                : "Offline – zeige Stand von \(Fmt.weekdayClock(feed!.generatedAt))."
+                ? String(localized: "Daten konnten nicht geladen werden.")
+                : String(localized: "Offline – zeige Stand von \(Fmt.weekdayClock(feed!.generatedAt)).")
         }
         await refreshOccupancy()
         WidgetCenter.shared.reloadAllTimelines()

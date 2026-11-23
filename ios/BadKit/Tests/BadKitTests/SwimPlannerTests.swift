@@ -43,7 +43,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         let plan = planner().plan(for: womenToday, now: t(16, day: 23), travel: 20 * 60)
         #expect(plan.status == .notToday)
         #expect(plan.womenOnlyToday?.end == t(22, 30, day: 23))
-        #expect(plan.womenOnlyText == "Frauen bis 22:30")
+        #expect(plan.womenOnlyText == L("Frauen bis \("22:30")"))
     }
 
     @Test func womenOnlyCountsWhenEnabled() {
@@ -82,7 +82,16 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         let plan = planner().plan(for: pool, now: t(10, day: 23), travel: 600)
         #expect(plan.status == .closed)
         #expect(plan.nextWindow?.start == t(6, 30))
-        #expect(plan.statusDetail?.hasSuffix("ab 06:30") == true)
+        #expect(plan.statusDetail == L("morgen ab \("06:30")"))
+    }
+
+    @Test func englishTranslationsResolve() {
+        // Catalog sanity check: look up the English table explicitly (independent of the machine's language).
+        guard let path = Bundle.module.path(forResource: "en", ofType: "lproj"), let en = Bundle(path: path) else {
+            Issue.record("no en.lproj in BadKit bundle"); return
+        }
+        #expect(String(localized: "offen bis", bundle: en) == "open until")
+        #expect(String(localized: "Frauen bis \("22:30")", bundle: en) == "Women-only until 22:30")
     }
 
     @Test func goNowWithEnoughTime() {
@@ -221,7 +230,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
     @Test func parsesLiveAndManualEntries() throws {
         let o = try Occupancy.parse(Data(feed.utf8))
         #expect(o.count == 4)          // level -1 dropped, -2 kept as closure
-        #expect(o[35]?.closedReason == "Wetterbedingt geschlossen")
+        #expect(o[35]?.closedReason == L("Wetterbedingt geschlossen"))
         #expect(o[12]?.fraction == 0.44)
         #expect(o[18]?.count == 0)     // negative counter clamped
         #expect(o[28]?.fraction == nil) // manual: level only
@@ -256,6 +265,6 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         let open = [Slot(start: t(8), end: t(22), kind: .public)]
         let plans = planner().plans(for: [makePool(id: 35, slots: open)], now: t(10), occupancy: o) { _ in (600, true) }
         #expect(plans.first?.status == .closed)
-        #expect(plans.first?.closedReason == "Wetterbedingt geschlossen")
+        #expect(plans.first?.closedReason == L("Wetterbedingt geschlossen"))
     }
 }

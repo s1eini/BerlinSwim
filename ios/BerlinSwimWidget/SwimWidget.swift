@@ -156,13 +156,13 @@ struct SwimWidgetView: View {
 
     /// "45 min Training · Anreise mit ÖPNV · 50 m"
     private var headerText: String {
-        [Fmt.minutes(entry.trainingMinutes) + " Training", entry.mode.arrivalText, entry.lane.map { "\($0) m" }]
+        [String(localized: "\(Fmt.minutes(entry.trainingMinutes)) Training"), entry.mode.arrivalText, entry.lane.map { "\($0) m" }]
             .compactMap { $0 }.joined(separator: " · ")
     }
 
     /// Small widget: just the training length, e.g. "45 min Training".
     private var smallHeaderText: String {
-        Fmt.minutes(entry.trainingMinutes) + " Training"
+        String(localized: "\(Fmt.minutes(entry.trainingMinutes)) Training")
     }
 
     /// Travel time, lane length (medium/large only) and, if known, occupancy.

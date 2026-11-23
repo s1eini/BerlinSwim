@@ -1,0 +1,196 @@
+{
+  "sourceLanguage": "de",
+  "strings": {
+    "%@ %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ Training": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ swim"
+          }
+        }
+      }
+    },
+    "Aktualisieren": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Car"
+          }
+        }
+      }
+    },
+    "Bäder, die jetzt offen und erreichbar sind – mit Restzeit fürs Training.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pools that are open and reachable now, with the swim time you have left."
+          }
+        }
+      }
+    },
+    "Fahrrad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bike"
+          }
+        }
+      }
+    },
+    "Heute kein Bad mehr erreichbar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more pools in reach today"
+          }
+        }
+      }
+    },
+    "Keine Daten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data"
+          }
+        }
+      }
+    },
+    "Leer = wie in der App": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave empty to use the app setting"
+          }
+        }
+      }
+    },
+    "Nur 50-m-Becken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "50 m pools only"
+          }
+        }
+      }
+    },
+    "Nur Favoriten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites only"
+          }
+        }
+      }
+    },
+    "Schwimmen gehen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go Swimming"
+          }
+        }
+      }
+    },
+    "Stand %@ · berlinerbaeder.de": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updated %@ · berlinerbaeder.de"
+          }
+        }
+      }
+    },
+    "Training (min)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session (min)"
+          }
+        }
+      }
+    },
+    "Verkehrsmittel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travel mode"
+          }
+        }
+      }
+    },
+    "Welche Bäder du jetzt noch erreichst – mit genug Zeit fürs Training.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which pools you can still reach now, with enough time for a full swim."
+          }
+        }
+      }
+    },
+    "Wie in der App": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as in the app"
+          }
+        }
+      }
+    },
+    "Zu Fuß": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walking"
+          }
+        }
+      }
+    },
+    "ÖPNV": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transit"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

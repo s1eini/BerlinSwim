@@ -25,36 +25,36 @@ public enum Fmt {
         let cal = Calendar.berlin
         if cal.isDate(d, inSameDayAs: now) { return clock(d) }
         if let tomorrow = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: tomorrow) {
-            return "morgen \(clock(d))"
+            return L("morgen \(clock(d))")
         }
-        let wd = d.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.abbreviated).locale(Locale(identifier: "de_DE")))
+        let wd = d.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.abbreviated).locale(.autoupdatingCurrent))
         return "\(wd) \(clock(d))"
     }
 
     /// "ab 16:00" today, "morgen ab 06:30", "Di ab 06:30".
     public static func dayFrom(_ d: Date, relativeTo now: Date = .now) -> String {
         let cal = Calendar.berlin
-        if cal.isDate(d, inSameDayAs: now) { return "ab \(clock(d))" }
+        if cal.isDate(d, inSameDayAs: now) { return L("ab \(clock(d))") }
         if let tomorrow = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: tomorrow) {
-            return "morgen ab \(clock(d))"
+            return L("morgen ab \(clock(d))")
         }
-        let wd = d.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.abbreviated).locale(Locale(identifier: "de_DE")))
-        return "\(wd) ab \(clock(d))"
+        let wd = d.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.abbreviated).locale(.autoupdatingCurrent))
+        return L("\(wd) ab \(clock(d))")
     }
 
     public static func temperature(_ c: Double) -> String {
-        String(format: "%.1f °C", c).replacingOccurrences(of: ".", with: ",")
+        c.formatted(.number.precision(.fractionLength(1)).locale(.autoupdatingCurrent)) + " °C"
     }
 }
 
 public extension SwimPlan.Status {
     var title: String {
         switch self {
-        case .goNow: "Offen"
-        case .later: "Später heute"
-        case .tight: "Knapp"
-        case .notToday: "Geschlossen"
-        case .closed: "Geschlossen"
+        case .goNow: L("Offen")
+        case .later: L("Später heute")
+        case .tight: L("Knapp")
+        case .notToday: L("Geschlossen")
+        case .closed: L("Geschlossen")
         }
     }
 
@@ -82,9 +82,9 @@ public extension SwimPlan {
     /// Short value next to / under the status, e.g. "bis 21:30", "noch 45 min", "ab 16:00", "morgen ab 06:30".
     var statusDetail: String? {
         switch status {
-        case .goNow: closingSoon ? "noch \(Fmt.minutes(usableMinutes))" : swimEnd.map { "bis \(Fmt.clock($0))" }
-        case .tight: "nur \(Fmt.minutes(usableMinutes))"
-        case .later: window.map { "ab \(Fmt.clock($0.start))" }
+        case .goNow: closingSoon ? L("noch \(Fmt.minutes(usableMinutes))") : swimEnd.map { L("bis \(Fmt.clock($0))") }
+        case .tight: L("nur \(Fmt.minutes(usableMinutes))")
+        case .later: window.map { L("ab \(Fmt.clock($0.start))") }
         case .notToday, .closed: nextWindow.map { Fmt.dayFrom($0.start) }
         }
     }
@@ -93,10 +93,10 @@ public extension SwimPlan {
     /// e.g. "offen bis" / "21:30", "noch" / "45 min", "nur noch" / "20 min", "Geschlossen" / "morgen ab 06:30".
     func timeLines(relativeTo now: Date = .now) -> (caption: String, value: String) {
         switch status {
-        case .goNow where closingSoon: ("noch", Fmt.minutes(usableMinutes))
-        case .goNow: ("offen bis", swimEnd.map(Fmt.clock) ?? "–")
-        case .tight: ("nur noch", Fmt.minutes(usableMinutes))
-        case .later: ("ab", window.map { Fmt.clock($0.start) } ?? "–")
+        case .goNow where closingSoon: (L("noch"), Fmt.minutes(usableMinutes))
+        case .goNow: (L("offen bis"), swimEnd.map(Fmt.clock) ?? "–")
+        case .tight: (L("nur noch"), Fmt.minutes(usableMinutes))
+        case .later: (L("ab"), window.map { Fmt.clock($0.start) } ?? "–")
         case .notToday, .closed: (status.title, nextWindow.map { Fmt.dayFrom($0.start, relativeTo: now) } ?? "")
         }
     }
@@ -109,14 +109,14 @@ public extension SwimPlan {
     /// Extra advice that isn't already in the status line (detail header only).
     var hint: String? {
         switch status {
-        case .goNow: closingSoon ? leaveBy.map { "Spätestens \(Fmt.clock($0)) losgehen" } : nil
+        case .goNow: closingSoon ? leaveBy.map { L("Spätestens \(Fmt.clock($0)) losgehen") } : nil
         case .later:
             window.map { w in
-                var s = "Los ab \(Fmt.clock(w.start.addingTimeInterval(-travel)))"
-                if let leaveBy { s += ", spätestens \(Fmt.clock(leaveBy))" }
+                var s = L("Los ab \(Fmt.clock(w.start.addingTimeInterval(-travel)))")
+                if let leaveBy { s += L(", spätestens \(Fmt.clock(leaveBy))") }
                 return s
             }
-        case .tight: swimEnd.map { "Badeschluss \(Fmt.clock($0)) – weniger als dein Training" }
+        case .tight: swimEnd.map { L("Badeschluss \(Fmt.clock($0)) – weniger als dein Training") }
         case .notToday, .closed: nil
         }
     }
@@ -124,7 +124,7 @@ public extension SwimPlan {
     /// "Frauen bis 22:30" when a women-only session is the only option today.
     var womenOnlyText: String? {
         guard let w = womenOnlyToday else { return nil }
-        return w.start > arrival ? "Frauen ab \(Fmt.clock(w.start))" : "Frauen bis \(Fmt.clock(w.end))"
+        return w.start > arrival ? L("Frauen ab \(Fmt.clock(w.start))") : L("Frauen bis \(Fmt.clock(w.end))")
     }
 
     /// True when you have to leave within the next 90 minutes to still get your training in.

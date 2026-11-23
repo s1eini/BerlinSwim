@@ -16,6 +16,9 @@ settings:
     # Set your team here (or in Xcode → Signing) for device builds:
     DEVELOPMENT_TEAM: 55SQ97YG8M
     CODE_SIGN_STYLE: Automatic
+    # Localization: German source, English via String Catalogs (*.xcstrings)
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 
 packages:
   BadKit:

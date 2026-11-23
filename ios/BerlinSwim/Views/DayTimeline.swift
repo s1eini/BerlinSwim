@@ -30,7 +30,7 @@ struct DayTimeline: View {
             }
             ForEach(areas, id: \.0.name) { area, slots in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(area.name + (area.laneLength.map { " · \($0) m" } ?? ""))
+                    Text(siteTerm(area.name) + (area.laneLength.map { " · \($0) m" } ?? ""))
                         .font(.subheadline.weight(.semibold))
                     track(area: area, slots: slots)
                     VStack(alignment: .leading, spacing: 3) {
@@ -125,7 +125,7 @@ struct DayTimeline: View {
         .opacity(0.8)
     }
 
-    private func legendItem(_ kind: Slot.Kind, _ title: String) -> some View {
+    private func legendItem(_ kind: Slot.Kind, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 2).fill(color(for: kind)).frame(width: 10, height: 10)
             Text(title)

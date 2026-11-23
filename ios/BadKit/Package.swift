@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "BadKit", targets: ["BadKit"]),
     ],
     targets: [
-        .target(name: "BadKit"),
+        .target(name: "BadKit", resources: [.process("Localizable.xcstrings")]),
         .testTarget(name: "BadKitTests", dependencies: ["BadKit"]),
     ]
 )

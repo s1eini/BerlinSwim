@@ -36,20 +36,20 @@ public struct Occupancy: Sendable, Hashable {
     /// Same wording as berlinerbaeder.de.
     public var title: String {
         switch level {
-        case 1?: "Geringe Auslastung"
-        case 2?: "Mittlere Auslastung"
-        case 3?: "Erhöhte Auslastung"
-        case 4?: "Maximale Auslastung"
-        default: closedReason ?? "unbekannt"
+        case 1?: L("Geringe Auslastung")
+        case 2?: L("Mittlere Auslastung")
+        case 3?: L("Erhöhte Auslastung")
+        case 4?: L("Maximale Auslastung")
+        default: closedReason ?? L("unbekannt")
         }
     }
 
     public var shortTitle: String {
         switch level {
-        case 1?: "gering"
-        case 2?: "mittel"
-        case 3?: "erhöht"
-        case 4?: "voll"
+        case 1?: L("gering")
+        case 2?: L("mittel")
+        case 3?: L("erhöht")
+        case 4?: L("voll")
         default: "–"
         }
     }
@@ -85,7 +85,7 @@ public struct Occupancy: Sendable, Hashable {
             guard let id = Int(r.id), let level = r.level else { continue }
             if level == -2 || level == -3 {
                 out[id] = Occupancy(level: nil, count: nil, capacity: nil, automatic: false,
-                                    closedReason: level == -2 ? "Wetterbedingt geschlossen" : "Betriebsbedingt geschlossen")
+                                    closedReason: level == -2 ? L("Wetterbedingt geschlossen") : L("Betriebsbedingt geschlossen"))
                 continue
             }
             guard level > 0 else { continue }
@@ -154,6 +154,6 @@ public struct OccupancyMeter: View {
             Text(compact ? occupancy.shortTitle : occupancy.detail)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Auslastung: \(occupancy.detail)")
+        .accessibilityLabel(L("Auslastung: \(occupancy.detail)"))
     }
 }

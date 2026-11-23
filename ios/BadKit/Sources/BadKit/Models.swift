@@ -154,10 +154,10 @@ public struct Slot: Codable, Sendable, Hashable {
     /// Short human label for timelines.
     public var shortLabel: String {
         switch kind {
-        case .public: "öffentlich"
-        case .limited: "öffentlich · eingeschränkt"
-        case .private: label.lowercased().contains("kein") ? label : "Schul- & Vereinsbetrieb"
-        case .restricted: label.replacingOccurrences(of: "öffentl. Schwimmen ", with: "")
+        case .public: L("öffentlich")
+        case .limited: L("öffentlich · eingeschränkt")
+        case .private: label.lowercased().contains("kein") ? siteTerm(label) : L("Schul- & Vereinsbetrieb")
+        case .restricted: siteTerm(label.replacingOccurrences(of: "öffentl. Schwimmen ", with: ""))
         }
     }
 }
@@ -174,16 +174,16 @@ public enum Feature: String, CaseIterable, Codable, Sendable, Identifiable {
         switch self {
         case .lane50: "50 m"
         case .lane25: "25 m"
-        case .diving: "Sprunganlage"
-        case .sauna: "Sauna"
-        case .nonSwimmer: "Nichtschwimmer"
-        case .toddler: "Planschbecken"
-        case .slide: "Rutsche"
-        case .lawn: "Liegewiese"
-        case .beach: "Sandstrand"
-        case .food: "Imbiss"
-        case .accessible: "Barrierefrei"
-        case .waterLift: "Wasserlift"
+        case .diving: L("Sprunganlage")
+        case .sauna: L("Sauna")
+        case .nonSwimmer: L("Nichtschwimmer")
+        case .toddler: L("Planschbecken")
+        case .slide: L("Rutsche")
+        case .lawn: L("Liegewiese")
+        case .beach: L("Sandstrand")
+        case .food: L("Imbiss")
+        case .accessible: L("Barrierefrei")
+        case .waterLift: L("Wasserlift")
         }
     }
 

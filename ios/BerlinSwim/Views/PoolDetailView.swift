@@ -132,7 +132,7 @@ struct PoolDetailView: View {
             Text(pool.shortName)
                 .font(.title.weight(.semibold))
                 .multilineTextAlignment(.center)
-            Text([pool.type, pool.district].compactMap { $0 }.joined(separator: " · "))
+            Text([pool.type.map(siteTerm), pool.district].compactMap { $0 }.joined(separator: " · "))
                 .font(.subheadline).opacity(0.85)
             HStack(spacing: 6) {
                 StatusLabel(status: plan.status)
@@ -183,7 +183,7 @@ struct PoolDetailView: View {
                 let day = Calendar.berlin.date(byAdding: .day, value: offset, to: model.now)!
                 let today = windows.filter { Calendar.berlin.isDate($0.start, inSameDayAs: day) }
                 HStack(alignment: .firstTextBaseline) {
-                    Text(offset == 0 ? "Heute" : day.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: "de_DE"))))
+                    Text(offset == 0 ? String(localized: "Heute") : day.formatted(.dateTime.weekday(.wide).locale(.autoupdatingCurrent)))
                         .fontWeight(offset == 0 ? .semibold : .regular)
                         .frame(width: 100, alignment: .leading)
                     if today.isEmpty {
@@ -213,7 +213,7 @@ struct PoolDetailView: View {
         VStack(spacing: 0) {
             ForEach(Array(pool.waterTemps.enumerated()), id: \.offset) { i, w in
                 HStack {
-                    Text(w.basin)
+                    Text(siteTerm(w.basin))
                     Spacer()
                     Text(Fmt.temperature(w.tempC)).monospacedDigit().fontWeight(.semibold)
                 }
@@ -284,7 +284,7 @@ struct StatusLabel: View {
 
 /// Section with the title above the glass card.
 struct DetailSection<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     var padded = true
     @ViewBuilder var content: Content
 
@@ -313,7 +313,7 @@ struct FeatureChips: View {
             if !items.isEmpty {
                 FlowLayout(spacing: 6) {
                     ForEach(items, id: \.self) { item in
-                        Text(item)
+                        Text(siteTerm(item))
                             .font(.footnote.weight(.medium))
                             .padding(.horizontal, 10).padding(.vertical, 6)
                             .background(.white.opacity(0.16), in: .capsule)

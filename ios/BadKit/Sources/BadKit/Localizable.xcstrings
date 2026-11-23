@@ -1,0 +1,981 @@
+{
+  "sourceLanguage": "de",
+  "strings": {
+    "%@ ab %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ from %2$@"
+          }
+        }
+      }
+    },
+    ", spätestens %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", by %@ at the latest"
+          }
+        }
+      }
+    },
+    "25-m-Becken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25 m pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "50-m-Becken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "50 m pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Aktuell keine Öffnungszeiten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No opening hours at the moment"
+          }
+        }
+      }
+    },
+    "Anreise mit Auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by car"
+          }
+        }
+      }
+    },
+    "Anreise mit Rad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by bike"
+          }
+        }
+      }
+    },
+    "Anreise mit ÖPNV": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by transit"
+          }
+        }
+      }
+    },
+    "Anreise zu Fuß": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "on foot"
+          }
+        }
+      }
+    },
+    "Auslastung: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Occupancy: %@"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Car"
+          }
+        }
+      }
+    },
+    "Außenbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outdoor pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Badeschluss %@ – weniger als dein Training": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of the water by %@ – not enough for a full session"
+          }
+        }
+      }
+    },
+    "Barrierefrei": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible"
+          }
+        }
+      }
+    },
+    "Barrierefreie Duschen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible showers"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Barrierefreie Toiletten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible toilets"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Barrierefreie Umkleiden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible changing rooms"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Becken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Behindertenparkplätze": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled parking"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Betriebsbedingt geschlossen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed for operational reasons"
+          }
+        }
+      }
+    },
+    "Erhöhte Auslastung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busy"
+          }
+        }
+      }
+    },
+    "Fahrrad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bike"
+          }
+        }
+      }
+    },
+    "Frauen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Women only"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Frauen ab %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Women-only from %@"
+          }
+        }
+      }
+    },
+    "Frauen bis %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Women-only until %@"
+          }
+        }
+      }
+    },
+    "Frauenschwimmen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Women-only swimming"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Freibad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outdoor pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Freizeit- und Familienbad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leisure & family pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Geringe Auslastung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        }
+      }
+    },
+    "Geschlossen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed"
+          }
+        }
+      }
+    },
+    "Große Halle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main hall"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Hallenbad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indoor pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Imbiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snack bar"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Kinderrutsche": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kids' slide"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Kleine Halle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Small hall"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Knapp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Short on time"
+          }
+        }
+      }
+    },
+    "Lehrschwimmbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teaching pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Liegewiese": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunbathing lawn"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Los ab %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave from %@"
+          }
+        }
+      }
+    },
+    "Massage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Massage"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Maximale Auslastung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full"
+          }
+        }
+      }
+    },
+    "Mehrzweckbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multi-purpose pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Menschen mit Behinderung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "People with disabilities"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mittlere Auslastung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fairly busy"
+          }
+        }
+      }
+    },
+    "Nichtschwimmer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learner pool"
+          }
+        }
+      }
+    },
+    "Nichtschwimmerbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learner pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Offen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
+    "Planschbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paddling pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rampen statt Treppen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ramps instead of stairs"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rutschbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slide pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rutsche": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slide"
+          }
+        }
+      }
+    },
+    "Sandstrand": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sandy beach"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sauna": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauna"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Schul- & Vereinsbetrieb": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "schools & clubs"
+          }
+        }
+      }
+    },
+    "Schul- und Vereinsbad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "School & club pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Schwimmerbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Spielplatz": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playground"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sprunganlage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diving boards"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sprungbecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diving pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Später heute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later today"
+          }
+        }
+      }
+    },
+    "Spätestens %@ losgehen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave by %@"
+          }
+        }
+      }
+    },
+    "Strandbad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lakeside lido"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Strandkorbverleih": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beach chair hire"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Taktile Leitstreifen für Blinde/Sehbehinderte": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tactile guide strips for blind and partially sighted visitors"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Therapiebecken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Therapy pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Traglufthalle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Air dome"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Wasserlift": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pool lift"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Wasserrollstuhl": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pool wheelchair"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Wasserrutsche": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Water slide"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Wetterbedingt geschlossen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed due to weather"
+          }
+        }
+      }
+    },
+    "Zu Fuß": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walking"
+          }
+        }
+      }
+    },
+    "ab": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "from"
+          }
+        }
+      }
+    },
+    "ab %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "from %@"
+          }
+        }
+      }
+    },
+    "bis %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "until %@"
+          }
+        }
+      }
+    },
+    "erhöht": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "busy"
+          }
+        }
+      }
+    },
+    "gemischt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixed"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "gering": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "quiet"
+          }
+        }
+      }
+    },
+    "kein öffentl. Schwimmen aufgrund eines Wettkampfs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No public swimming (competition)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "mittel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fairly busy"
+          }
+        }
+      }
+    },
+    "morgen %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tomorrow %@"
+          }
+        }
+      }
+    },
+    "morgen ab %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tomorrow from %@"
+          }
+        }
+      }
+    },
+    "noch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time left"
+          }
+        }
+      }
+    },
+    "noch %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ left"
+          }
+        }
+      }
+    },
+    "nur %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "only %@"
+          }
+        }
+      }
+    },
+    "nur für Menschen mit Behinderung, Senioren, Schwangere und Eltern mit Kindern unter 2 Jahren": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for people with disabilities, seniors, pregnant women and parents with children under 2"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "nur für Schwangere, parallel Kursbetrieb": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for pregnant women, courses running"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "nur noch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "only"
+          }
+        }
+      }
+    },
+    "offen bis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "open until"
+          }
+        }
+      }
+    },
+    "unbekannt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown"
+          }
+        }
+      }
+    },
+    "voll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "full"
+          }
+        }
+      }
+    },
+    "ÖPNV": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transit"
+          }
+        }
+      }
+    },
+    "öffentlich": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "public"
+          }
+        }
+      }
+    },
+    "öffentlich · eingeschränkt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "public · fewer lanes"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

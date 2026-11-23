@@ -78,7 +78,7 @@ struct PoolListScreen: View {
     }
 
     @ViewBuilder
-    private func section(_ title: String, _ plans: [SwimPlan]) -> some View {
+    private func section(_ title: LocalizedStringKey, _ plans: [SwimPlan]) -> some View {
         if !plans.isEmpty {
             Text(title)
                 .font(.headline)
@@ -175,9 +175,9 @@ struct PoolCard: View {
                 if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
                 if plan.status <= .tight, let o = plan.occupancy { FactChip(text: o.shortTitle, symbol: "person.2.fill", tint: o.color) }
                 if let w = plan.womenOnlyText { FactChip(text: w, symbol: "figure.stand.dress") }
-                if plan.window?.isWomenOnly == true { FactChip(text: "nur Frauen", symbol: "figure.stand.dress") }
+                if plan.window?.isWomenOnly == true { FactChip(text: String(localized: "nur Frauen"), symbol: "figure.stand.dress") }
                 if !plan.pool.warnings.isEmpty, plan.status != .closed {
-                    FactChip(text: "Hinweis", symbol: "exclamationmark.circle")
+                    FactChip(text: String(localized: "Hinweis"), symbol: "exclamationmark.circle")
                 }
             }
         }
@@ -195,7 +195,7 @@ struct PoolCard: View {
     /// One line with exactly the height and baseline of a name line (title3 semibold).
     private func nameLine<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .firstTextBaseline)) {
-            Text("Ag").font(.title3.weight(.semibold)).hidden()
+            Text(verbatim: "Ag").font(.title3.weight(.semibold)).hidden()
             content()
         }
     }
@@ -244,7 +244,7 @@ struct FilterBar: View {
                     }
                     Button {
                         withAnimation(.snappy) { model.preferences.avoidCrowded.toggle() }
-                    } label: { chip("Nicht voll", "person.2.slash", active: model.preferences.avoidCrowded) }
+                    } label: { chip(String(localized: "Nicht voll"), "person.2.slash", active: model.preferences.avoidCrowded) }
                     .buttonStyle(.plain)
                 }
             }
