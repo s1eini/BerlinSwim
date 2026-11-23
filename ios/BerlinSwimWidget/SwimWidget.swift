@@ -153,6 +153,15 @@ struct SwimWidgetView: View {
         }
     }
 
+    private func leaveText(_ plan: SwimPlan) -> String? {
+        switch plan.status {
+        case .goNow: plan.leaveBy.map { "los bis \(Fmt.clock($0))" }
+        case .later: plan.window.map { "los ab \(Fmt.clock($0.start.addingTimeInterval(-plan.travel)))" }
+        case .tight: "nur \(Fmt.minutes(plan.usableMinutes))"
+        default: nil
+        }
+    }
+
     private func url(_ plan: SwimPlan) -> URL { URL(string: "berlinswim://pool/\(plan.pool.id)")! }
 
     @ViewBuilder
@@ -172,7 +181,7 @@ struct SwimWidgetView: View {
                 Text(plan.headline)
                     .font(.system(size: 34, weight: .light)).lineLimit(1).minimumScaleFactor(0.6)
                     .contentTransition(.numericText())
-                Text(plan.status == .later ? plan.status.title : "Badeschluss \(plan.swimEnd.map(Fmt.clock) ?? "–")")
+                Text(leaveText(plan) ?? plan.status.title)
                     .font(.caption2).opacity(0.85)
             }
             .foregroundStyle(.white)
@@ -217,8 +226,8 @@ struct SwimWidgetView: View {
             Circle().fill(plan.status.color).frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 0) {
                 Text(plan.pool.shortName).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text("\(plan.travelText) · bis \(plan.swimEnd.map(Fmt.clock) ?? "–")"
-                     + (plan.pool.warnings.isEmpty ? "" : " · ⚠︎"))
+                Text([plan.travelText, leaveText(plan), plan.pool.warnings.isEmpty ? nil : "⚠︎"]
+                    .compactMap { $0 }.joined(separator: " · "))
                     .font(.caption2).opacity(0.85).lineLimit(1)
             }
             Spacer()

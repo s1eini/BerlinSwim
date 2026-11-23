@@ -7,8 +7,9 @@ struct PoolListScreen: View {
     @State private var showAll = false
 
     private var favorites: [SwimPlan] { model.plans.filter { model.isFavorite($0.pool) } }
+    private var hero: SwimPlan? { model.plans.first.flatMap { $0.status <= .tight ? $0 : nil } }
     private var reachable: [SwimPlan] {
-        model.plans.filter { !model.isFavorite($0.pool) && $0.status <= .tight }
+        model.plans.filter { !model.isFavorite($0.pool) && $0.status <= .tight && $0.pool.id != hero?.pool.id }
     }
     private var others: [SwimPlan] {
         model.plans.filter { !model.isFavorite($0.pool) && $0.status > .tight }
@@ -20,7 +21,7 @@ struct PoolListScreen: View {
                 LazyVStack(spacing: 14) {
                     header
                     FilterBar()
-                    if let best = model.plans.first, best.status <= .tight {
+                    if let best = hero {
                         NavigationLink(value: best.pool) { HeroCard(plan: best) }
                             .buttonStyle(.plain)
                     }
@@ -235,14 +236,14 @@ struct FilterBar: View {
                             ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
                         }
                     } label: {
-                        chip(model.preferences.travelMode.title, model.preferences.travelMode.symbol, active: true)
+                        pickerChip(model.preferences.travelMode.title, model.preferences.travelMode.symbol)
                     }
                     Menu {
                         Picker("Training", selection: $model.preferences.trainingMinutes) {
                             ForEach([30, 45, 60, 75, 90, 120], id: \.self) { Text(Fmt.minutes($0)).tag($0) }
                         }
                     } label: {
-                        chip(Fmt.minutes(model.preferences.trainingMinutes), "timer", active: true)
+                        pickerChip(Fmt.minutes(model.preferences.trainingMinutes), "timer")
                     }
                     ForEach(quick) { f in
                         let on = model.preferences.requiredFeatures.contains(f)
@@ -262,11 +263,27 @@ struct FilterBar: View {
         .scrollClipDisabled()
     }
 
+    /// Toggle chip: active = solid white with checkmark, inactive = clear glass.
     private func chip(_ title: String, _ symbol: String, active: Bool) -> some View {
-        Label(title, systemImage: symbol)
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(.white)
+        Label(title, systemImage: active ? "checkmark" : symbol)
+            .font(.subheadline.weight(active ? .semibold : .medium))
+            .foregroundStyle(active ? Color(red: 0.05, green: 0.40, blue: 0.75) : .white)
             .padding(.horizontal, 12).padding(.vertical, 8)
-            .glassEffect(active ? .regular.tint(.white.opacity(0.25)).interactive() : .clear.interactive(), in: .capsule)
+            .background(active ? AnyShapeStyle(.white) : AnyShapeStyle(.clear), in: .capsule)
+            .glassEffect(.clear.interactive(), in: .capsule)
+            .accessibilityAddTraits(active ? .isSelected : [])
+    }
+
+    /// Picker chip (travel mode, duration): glass with a chevron.
+    private func pickerChip(_ title: String, _ symbol: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol)
+            Text(title)
+            Image(systemName: "chevron.down").font(.caption2.weight(.bold)).opacity(0.8)
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .glassEffect(.regular.tint(.black.opacity(0.12)).interactive(), in: .capsule)
     }
 }
