@@ -1,1 +1,1 @@
-Neu: Bäderdaten kommen jetzt von berlinswim.eatbl.de (in Build 2 wurden sie nicht mehr aktualisiert). Besser lesbar, große Schrift und VoiceOver funktionieren. Statt „offen bis“ steht jetzt „schwimmen bis“ (Badeschluss). Bitte prüfen, ob die Zeiten mit dem Bad vor Ort übereinstimmen.
+Neu: iPad-Unterstützung. In den Bad-Details stehen jetzt Preise (mit Bad-Kategorie) und, wo es eine Sauna gibt, die Saunazeiten. Der Anreise-Chip zeigt ein neutrales Wege-Symbol, das Verkehrsmittel steht oben. Bitte prüfen, ob Preise und Zeiten mit dem Bad vor Ort übereinstimmen.

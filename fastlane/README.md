@@ -53,7 +53,15 @@ Set TestFlight test information (beta description, feedback email, privacy URL) 
 [bundle exec] fastlane ios testflight_notes
 ```
 
-Set 'What to Test' (de/en) on build 3 of 1.0.0
+Set 'What to Test' (de/en) on build 4 of 1.0.0
+
+### ios groups
+
+```sh
+[bundle exec] fastlane ios groups
+```
+
+List the app's TestFlight groups (names must match exactly in the external lane)
 
 ### ios external
 
@@ -61,7 +69,7 @@ Set 'What to Test' (de/en) on build 3 of 1.0.0
 [bundle exec] fastlane ios external
 ```
 
-Give build 3 of 1.0.0 to the TestFlight group 'external' (submits for beta review if needed)
+Give build 4 of 1.0.0 to the TestFlight group 'Extern' (submits for beta review if needed)
 
 ----
 

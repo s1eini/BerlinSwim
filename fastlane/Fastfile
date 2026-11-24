@@ -139,7 +139,17 @@ platform :ios do
     )
   end
 
-  desc "Give build #{BUILD} of #{VERSION} to the TestFlight group 'external' (submits for beta review if needed)"
+  desc "List the app's TestFlight groups (names must match exactly in the external lane)"
+  lane :groups do
+    app = Spaceship::ConnectAPI::App.find(CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier))
+    app.get_beta_groups.each do |g|
+      builds = Spaceship::ConnectAPI.get_builds(filter: { app: app.id, betaGroups: g.id }, includes: "app", sort: "-uploadedDate", limit: 5)
+                                    .to_models.map(&:version)
+      UI.message("Group #{g.name.inspect} (#{g.is_internal_group ? 'internal' : 'external'}): builds #{builds.inspect}")
+    end
+  end
+
+  desc "Give build #{BUILD} of #{VERSION} to the TestFlight group 'Extern' (submits for beta review if needed)"
   lane :external do
     notes = ->(lang) { File.read(File.join(TESTFLIGHT_NOTES, "#{lang}.txt")).strip }
     upload_to_testflight(
@@ -148,7 +158,7 @@ platform :ios do
       app_version: VERSION,
       build_number: BUILD,
       distribute_external: true,
-      groups: ["external"],
+      groups: ["Extern"], # exact name as in App Store Connect; fastlane silently ignores unknown names
       notify_external_testers: true,
       localized_build_info: {
         "de-DE" => { whats_new: notes.call("de-DE") },

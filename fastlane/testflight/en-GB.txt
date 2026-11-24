@@ -1,1 +1,1 @@
-New: pool data now comes from berlinswim.eatbl.de (build 2 stopped getting updates). Easier to read, and large text and VoiceOver work properly. "Swim until" now replaces "open until" (time you have to be out of the water). Please check whether the times match what you find at the pool.
+New: iPad support. Pool details now show ticket prices (with the pool category) and, where there is one, sauna opening times. The travel-time chip uses a neutral route symbol; your travel mode is shown at the top. Please check whether prices and times match what you find at the pool.
