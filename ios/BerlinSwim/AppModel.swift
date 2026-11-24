@@ -107,6 +107,7 @@ final class AppModel {
     }
 
     func refresh(force: Bool = false) async {
+        guard fixedNow == nil else { return } // preview / -previewHour: stay on the bundled seed data
         isRefreshing = true
         defer { isRefreshing = false }
         do {

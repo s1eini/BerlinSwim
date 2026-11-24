@@ -61,7 +61,7 @@ struct PoolListScreen: View {
     private var header: some View {
         VStack(spacing: 2) {
             Text("Schwimmen gehen?")
-                .font(.system(size: 34, weight: .bold))
+                .font(.largeTitle.bold()) // scales with Dynamic Type
             if model.travelKnown {
                 Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")
                     .font(.subheadline).opacity(0.85)
@@ -69,7 +69,7 @@ struct PoolListScreen: View {
                 Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · ohne Anreisezeit")
                     .font(.subheadline).opacity(0.85)
                 Text("Standort aus – Bäder nach Öffnungszeit sortiert")
-                    .font(.caption).opacity(0.8).padding(.top, 4)
+                    .font(.caption).opacity(0.9).padding(.top, 4)
                 if model.locationDenied {
                     Button("Standort freigeben") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
@@ -93,7 +93,7 @@ struct PoolListScreen: View {
         if !plans.isEmpty {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 8)
             cards(plans)
@@ -132,7 +132,8 @@ struct PoolListScreen: View {
     private var noneLeftTodayView: some View {
         VStack(spacing: 8) {
             Image(systemName: "moon.zzz.fill")
-                .font(.system(size: 44))
+                .font(.largeTitle)
+                .imageScale(.large)
                 .padding(.bottom, 4)
             Text(model.travelKnown ? "Heute kein Bad mehr erreichbar" : "Heute kein Bad mehr offen")
                 .font(.title3.weight(.semibold))
@@ -172,7 +173,7 @@ struct PoolListScreen: View {
             Text("Angaben ohne Gewähr – Hinweise vor Ort beachten.")
         }
         .font(.caption2)
-        .foregroundStyle(.white.opacity(0.7))
+        .foregroundStyle(.white.opacity(0.85))
         .padding(.top, 12)
     }
 }
@@ -180,18 +181,46 @@ struct PoolListScreen: View {
 /// List card, like a city row in the Weather app: full name and status on top, facts as chips.
 struct PoolCard: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let plan: SwimPlan
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if dynamicTypeSize.isAccessibilitySize {
+                accessibilityHeader // very large text: name on top, time below, nothing truncated
+            } else {
+                standardHeader
+            }
+            chips
+        }
+        .foregroundStyle(.white)
+        .padding(16)
+        .background {
+            WaterBackground(status: plan.status, date: model.now)
+                .opacity(0.55)
+                .clipShape(.rect(cornerRadius: 22))
+        }
+        .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 22))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var accessibilityHeader: some View {
+        let time = plan.timeLines(relativeTo: model.now)
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(plan.pool.shortName).font(.title3.weight(.semibold))
+            Text([time.caption, time.value].filter { !$0.isEmpty }.joined(separator: " "))
+                .font(.title3.monospacedDigit())
+                .foregroundStyle(plan.status == .tight ? plan.status.color : .white)
+        }
+    }
+
+    private var standardHeader: some View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(plan.pool.shortName)
-                        .font(.title3.weight(.semibold))
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if model.isFavorite(plan.pool) { Image(systemName: "star.fill").font(.caption) }
-                }
+                // No favourite star: favourites have their own section on the home screen.
+                Text(plan.pool.shortName)
+                    .font(.title3.weight(.semibold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
                 // Same two lines as the widget: status icon + caption, value below.
                 let time = plan.timeLines(relativeTo: model.now)
@@ -200,7 +229,7 @@ struct PoolCard: View {
                 VStack(alignment: .trailing, spacing: 0) {
                     nameLine {
                         HStack(spacing: 3) {
-                            // Open/tight need no icon ("offen bis", "noch", "nur noch" say it all).
+                            // Open/tight need no icon ("schwimmen bis", "Schwimmzeit", "nur noch" say it all).
                             if plan.status > .tight {
                                 Image(systemName: plan.status.symbol)
                                     .font(.caption2)
@@ -222,6 +251,9 @@ struct PoolCard: View {
                 }
                 .fixedSize()
             }
+    }
+
+    private var chips: some View {
             FlowLayout(spacing: 6) {
                 if plan.travelKnown { FactChip(text: plan.travelText, symbol: model.preferences.travelMode.symbol) }
                 if let lane = plan.window?.laneLength ?? plan.pool.laneLength { FactChip(text: "\(lane) m") }
@@ -233,16 +265,6 @@ struct PoolCard: View {
                     FactChip(text: String(localized: "Hinweis"), symbol: "exclamationmark.circle")
                 }
             }
-        }
-        .foregroundStyle(.white)
-        .padding(16)
-        .background {
-            WaterBackground(status: plan.status, date: model.now)
-                .opacity(0.55)
-                .clipShape(.rect(cornerRadius: 22))
-        }
-        .glassEffect(.clear.interactive(), in: .rect(cornerRadius: 22))
-        .accessibilityElement(children: .combine)
     }
 
     /// One line with exactly the height and baseline of a name line (title3 semibold).
@@ -318,6 +340,7 @@ struct FilterBar: View {
             .background(active ? AnyShapeStyle(.white) : AnyShapeStyle(.clear), in: .capsule)
             .glassEffect(.clear.interactive(), in: .capsule)
             .accessibilityAddTraits(active ? .isSelected : [])
+            .padding(.vertical, 4).contentShape(.rect) // ≥ 44 pt tap target without changing the look
     }
 
     /// Picker chip (travel mode, duration): glass with a chevron.

@@ -105,12 +105,12 @@ public extension SwimPlan {
     }
 
     /// Two-line time used by widget rows and list cards: small caption + value,
-    /// e.g. "offen bis" / "21:30", "noch" / "45 min", "nur noch" / "20 min", "Geschlossen" / "morgen ab 06:30".
+    /// e.g. "schwimmen bis" / "21:30", "Schwimmzeit" / "45 min", "nur noch" / "20 min", "Geschlossen" / "morgen ab 06:30".
     func timeLines(relativeTo now: Date? = nil) -> (caption: String, value: String) {
         let now = now ?? plannedAt
         return switch status {
-        case .goNow where closingSoon: (L("noch"), Fmt.minutes(usableMinutes))
-        case .goNow: (L("offen bis"), swimEnd.map(Fmt.clock) ?? "–")
+        case .goNow where closingSoon: (L("Schwimmzeit"), Fmt.minutes(usableMinutes))
+        case .goNow: (L("schwimmen bis"), swimEnd.map(Fmt.clock) ?? "–") // Badeschluss, not closing time
         case .tight: (L("nur noch"), Fmt.minutes(usableMinutes))
         case .later: (L("öffnet"), window.map { Fmt.clock($0.start) } ?? "–")
         case .notToday, .closed: (status.title, nextWindow.map { Fmt.dayFrom($0.start, relativeTo: now) } ?? "")
@@ -123,9 +123,9 @@ public extension SwimPlan {
     var statusSentence: String {
         switch status {
         case .goNow where closingSoon:
-            return L("Noch \(Fmt.minutes(usableMinutes)) geöffnet")
+            return L("Noch \(Fmt.minutes(usableMinutes)) Schwimmzeit")
         case .goNow:
-            return swimEnd.map { L("Offen bis \(Fmt.clock($0)) Uhr") } ?? status.title
+            return swimEnd.map { L("Schwimmen bis \(Fmt.clock($0)) Uhr") } ?? status.title
         case .tight:
             return L("Nur noch \(Fmt.minutes(usableMinutes)) Schwimmzeit")
         case .later:
@@ -202,15 +202,15 @@ public struct WaterBackground: View {
         switch status {
         case .goNow?:
             return night ? [Color(red: 0.02, green: 0.18, blue: 0.32), Color(red: 0.03, green: 0.38, blue: 0.45)]
-                : [Color(red: 0.06, green: 0.40, blue: 0.74), Color(red: 0.05, green: 0.52, blue: 0.62)]
+                : [Color(red: 0.04, green: 0.31, blue: 0.62), Color(red: 0.02, green: 0.34, blue: 0.46)] // measured ≥ 5:1 for white text (glass lightens)
         case .later?, .tight?:
             return night ? [Color(red: 0.05, green: 0.12, blue: 0.30), Color(red: 0.12, green: 0.26, blue: 0.48)]
-                : [Color(red: 0.16, green: 0.32, blue: 0.66), Color(red: 0.26, green: 0.44, blue: 0.70)]
+                : [Color(red: 0.12, green: 0.25, blue: 0.55), Color(red: 0.18, green: 0.32, blue: 0.56)]
         case .closed?, .notToday?:
-            return [Color(red: 0.20, green: 0.24, blue: 0.32), Color(red: 0.34, green: 0.40, blue: 0.48)]
+            return [Color(red: 0.18, green: 0.21, blue: 0.28), Color(red: 0.27, green: 0.32, blue: 0.39)]
         case nil:
             return night ? [Color(red: 0.03, green: 0.10, blue: 0.24), Color(red: 0.05, green: 0.25, blue: 0.40)]
-                : [Color(red: 0.08, green: 0.38, blue: 0.72), Color(red: 0.12, green: 0.50, blue: 0.66)]
+                : [Color(red: 0.05, green: 0.30, blue: 0.60), Color(red: 0.06, green: 0.36, blue: 0.48)]
         }
     }
 }
@@ -238,8 +238,9 @@ public struct FactChip: View {
         }
         .font((compact ? Font.caption2 : Font.caption).weight(.medium).monospacedDigit())
         .padding(.horizontal, compact ? 6 : 8).padding(.vertical, compact ? 2 : 4)
-        .background(.white.opacity(0.16), in: .capsule)
-        .lineLimit(1)
-        .fixedSize()
+        .background(.black.opacity(0.18), in: .capsule) // darker than the card keeps white text ≥ 4.5:1
+        // Widget chips stay on one line; in the app they may wrap at very large text sizes.
+        .lineLimit(compact ? 1 : nil)
+        .fixedSize(horizontal: compact, vertical: true)
     }
 }

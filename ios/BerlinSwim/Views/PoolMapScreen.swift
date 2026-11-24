@@ -69,6 +69,13 @@ struct PoolPin: View {
             .overlay(Circle().stroke(.white, lineWidth: selected ? 3 : 1.5))
             .scaleEffect(selected ? 1.3 : 1)
             .shadow(color: .black.opacity(0.3), radius: 3, y: 1)
+            .frame(width: 44, height: 44) // tap target
+            .contentShape(.circle)
+            // VoiceOver: "Stadtbad Neukölln, Offen bis 22:00 Uhr" instead of the symbol name
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(plan.pool.shortName)
+            .accessibilityValue(plan.statusSentence)
+            .accessibilityAddTraits(.isButton)
     }
 }
 

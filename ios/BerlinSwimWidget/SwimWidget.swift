@@ -259,7 +259,7 @@ struct SwimWidgetView: View {
     }
 
     /// Two grid rows so left and right share a text baseline:
-    /// name ⟷ "offen bis", chips ⟷ "21:30".
+    /// name ⟷ "schwimmen bis", chips ⟷ "21:30".
     private func row(_ plan: SwimPlan) -> some View {
         let time = timeLines(plan)
         // Left column takes all remaining width (maxWidth: .infinity); the right column is only as

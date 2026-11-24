@@ -1,1 +1,1 @@
-Neu: App heißt jetzt Berlin Swim, neues Icon, auf Englisch nutzbar und ohne Standort (dann nach Öffnungszeiten sortiert). Bitte vor allem prüfen, ob „offen bis“ und „öffnet um“ mit dem Bad vor Ort übereinstimmen.
+Neu: App heißt jetzt Berlin Swim, neues Icon, auf Englisch nutzbar und ohne Standort (dann nach Öffnungszeiten sortiert). Bitte vor allem prüfen, ob „schwimmen bis“ und „öffnet um“ mit dem Bad vor Ort übereinstimmen.

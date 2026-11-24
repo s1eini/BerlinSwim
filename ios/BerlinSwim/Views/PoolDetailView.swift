@@ -53,6 +53,9 @@ struct FavoriteButton: View {
 /// .title (name) · .headline (section titles, status) · .subheadline (content) · .footnote (secondary)
 struct PoolDetailView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Weekday column of the week table, grows with the text size.
+    @ScaledMetric(relativeTo: .subheadline) private var dayColumnWidth: CGFloat = 100
     @Environment(\.openURL) private var openURL
     let pool: Pool
 
@@ -178,12 +181,16 @@ struct PoolDetailView: View {
             ForEach(0..<7, id: \.self) { offset in
                 let day = Calendar.berlin.date(byAdding: .day, value: offset, to: model.now)!
                 let today = windows.filter { Calendar.berlin.isDate($0.start, inSameDayAs: day) }
-                HStack(alignment: .firstTextBaseline) {
+                // Very large text: weekday above the times instead of a column next to them.
+                let rowLayout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                rowLayout {
                     Text(offset == 0 ? String(localized: "Heute") : day.formatted(.dateTime.weekday(.wide).locale(.autoupdatingCurrent)))
                         .fontWeight(offset == 0 ? .semibold : .regular)
-                        .frame(width: 100, alignment: .leading)
+                        .frame(width: dynamicTypeSize.isAccessibilitySize ? nil : dayColumnWidth, alignment: .leading)
                     if today.isEmpty {
-                        Text("–").opacity(0.5)
+                        Text("–").opacity(0.7)
                     } else {
                         VStack(alignment: .leading, spacing: 2) {
                             ForEach(today, id: \.self) { w in
@@ -198,7 +205,7 @@ struct PoolDetailView: View {
                 if offset < 6 { Divider().overlay(.white.opacity(0.2)) }
             }
             Text("* zeitweise eingeschränkte Wasserfläche · Einlass bis \(pool.rules.entryCutoffMin) min, Badeschluss \(pool.rules.exitBeforeCloseMin) min vor Ende")
-                .font(.footnote).opacity(0.7)
+                .font(.footnote).opacity(0.85)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 8)
         }
@@ -295,7 +302,7 @@ struct DetailSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.white)
                 .padding(.leading, 4)
             content
                 .foregroundStyle(.white)
@@ -329,7 +336,7 @@ struct FeatureChips: View {
                     ForEach(notes.prefix(6), id: \.self) { Text($0) }
                 }
                 .font(.footnote)
-                .opacity(0.8)
+                .opacity(0.9)
             }
         }
     }
@@ -344,12 +351,20 @@ struct FlowLayout: Layout {
         return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
     }
 
+    /// Natural size, but never wider than a row: very large text then wraps inside the chip
+    /// instead of running off screen.
+    private func size(of view: LayoutSubview, maxWidth: CGFloat) -> CGSize {
+        let ideal = view.sizeThatFits(.unspecified)
+        guard ideal.width > maxWidth, maxWidth.isFinite else { return ideal }
+        return view.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+    }
+
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var y = bounds.minY
         for row in arrange(width: bounds.width, subviews: subviews) {
             var x = bounds.minX
             for i in row.indices {
-                let size = subviews[i].sizeThatFits(.unspecified)
+                let size = size(of: subviews[i], maxWidth: bounds.width)
                 subviews[i].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
@@ -362,7 +377,7 @@ struct FlowLayout: Layout {
     private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
         var rows: [Row] = [Row()]
         for (i, sv) in subviews.enumerated() {
-            let size = sv.sizeThatFits(.unspecified)
+            let size = size(of: sv, maxWidth: width)
             if rows[rows.count - 1].width + size.width > width, !rows[rows.count - 1].indices.isEmpty {
                 rows.append(Row())
             }

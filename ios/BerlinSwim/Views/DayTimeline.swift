@@ -38,7 +38,7 @@ struct DayTimeline: View {
                             HStack(spacing: 8) {
                                 RoundedRectangle(cornerRadius: 2).fill(color(for: s.kind)).frame(width: 10, height: 10)
                                 Text(Fmt.rangeUhr(s.start, s.end)).monospacedDigit()
-                                Text(s.shortLabel).opacity(0.8).lineLimit(1)
+                                Text(s.shortLabel).opacity(0.9).lineLimit(1)
                             }
                             .font(.footnote)
                         }
@@ -100,7 +100,7 @@ struct DayTimeline: View {
                 ForEach(ticks, id: \.self) { h in
                     Text(String(format: "%02d", h))
                         .font(.caption.monospacedDigit())
-                        .opacity(0.6)
+                        .opacity(0.85)
                         .fixedSize()
                         .position(x: CGFloat((Double(h) - startHour) / (endHour - startHour)) * geo.size.width, y: 6)
                 }
@@ -129,7 +129,7 @@ struct DayTimeline: View {
             }
         }
         .font(.caption)
-        .opacity(0.8)
+        .opacity(0.9)
     }
 
     private func legendItem(_ kind: Slot.Kind, _ title: LocalizedStringKey) -> some View {

@@ -524,12 +524,12 @@
       },
       "extractionState": "manual"
     },
-    "Noch %@ geöffnet": {
+    "Noch %@ Schwimmzeit": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open for another %@"
+            "value": "%@ of swim time left"
           }
         }
       }
@@ -550,16 +550,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open"
-          }
-        }
-      }
-    },
-    "Offen bis %@ Uhr": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open until %@"
           }
         }
       }
@@ -650,6 +640,16 @@
       },
       "extractionState": "manual"
     },
+    "Schwimmen bis %@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swim until %@"
+          }
+        }
+      }
+    },
     "Schwimmerbecken": {
       "localizations": {
         "en": {
@@ -660,6 +660,16 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Schwimmzeit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "swim time"
+          }
+        }
+      }
     },
     "Spielplatz": {
       "localizations": {
@@ -924,16 +934,6 @@
         }
       }
     },
-    "noch": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time left"
-          }
-        }
-      }
-    },
     "noch %@": {
       "localizations": {
         "en": {
@@ -986,12 +986,12 @@
         }
       }
     },
-    "offen bis": {
+    "schwimmen bis": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "open until"
+            "value": "swim until"
           }
         }
       }

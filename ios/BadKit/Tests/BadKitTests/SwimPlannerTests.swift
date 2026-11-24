@@ -91,7 +91,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         guard let path = Bundle.module.path(forResource: "en", ofType: "lproj"), let en = Bundle(path: path) else {
             Issue.record("no en.lproj in BadKit bundle"); return
         }
-        #expect(String(localized: "offen bis", bundle: en) == "open until")
+        #expect(String(localized: "schwimmen bis", bundle: en) == "swim until")
         #expect(String(localized: "Frauen bis \("22:30")", bundle: en) == "Women-only until 22:30")
     }
 
@@ -116,7 +116,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
     }
 
     @Test func statusSentences() {
-        #expect(planner().plan(for: evening, now: t(18), travel: 1200).statusSentence == L("Offen bis \("21:30") Uhr"))
+        #expect(planner().plan(for: evening, now: t(18), travel: 1200).statusSentence == L("Schwimmen bis \("21:30") Uhr"))
         #expect(planner().plan(for: evening, now: t(10), travel: 1200).statusSentence == L("Öffnet um \("16:00") Uhr"))
         #expect(planner().plan(for: evening, now: t(20, 10), travel: 1200).statusSentence == L("Nur noch \("45 min") Schwimmzeit"))
         // English table: whole sentences, own word order

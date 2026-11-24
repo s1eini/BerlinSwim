@@ -96,6 +96,19 @@ targets:
         POOLS_FEED_URL: "https://berlinswim.eatbl.de/pools.json"
         TARGETED_DEVICE_FAMILY: "1"
 
+  BerlinSwimUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: BerlinSwimUITests
+    dependencies:
+      - target: BerlinSwim
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.eatbl.BerlinSwim.UITests
+        TEST_TARGET_NAME: BerlinSwim
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   BerlinSwim:
     build:
@@ -104,3 +117,7 @@ schemes:
         BerlinSwimWidget: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - BerlinSwimUITests
