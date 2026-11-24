@@ -257,7 +257,7 @@ struct PoolCard: View {
 
     private var chips: some View {
             FlowLayout(spacing: 6) {
-                if plan.travelKnown { FactChip(text: plan.travelText, symbol: model.preferences.travelMode.symbol) }
+                if plan.travelKnown { FactChip(text: plan.travelText, symbol: TravelMode.travelSymbol) }
                 if let lane = plan.window?.laneLength ?? plan.pool.laneLength { FactChip(text: "\(lane) m") }
                 if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
                 if plan.status <= .tight, let o = plan.occupancy { FactChip(text: o.shortTitle, symbol: "person.2.fill", tint: o.color) }

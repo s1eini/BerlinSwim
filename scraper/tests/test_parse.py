@@ -68,6 +68,30 @@ class DetailPageTests(unittest.TestCase):
         self.assertEqual([n["severity"] for n in d["notices"]], ["info", "warning"])
 
 
+    def test_prices_with_groups(self):
+        html = (
+            '<div class="facility_prices_content">'
+            '<div class="facility_prices_content_intro"><p>Dieses Bad gehört zur Bad-Kategorie 1.</p></div>'
+            '<div class="facility_prices_content_intro"><p><strong>Kinder unter 5 frei.</strong></p></div>'
+            '<div class="table"><div class="table-header-group"><div class="table-row"><div class="table-head"> Badetarif </div></div></div>'
+            '<div class="table-body-group"><div class="table-row"><div class="table-cell"><span class="mobilehead">Badetarif:</span>'
+            ' 90-Minuten-Ticket <span class="subtitle">Nachzahlung möglich.</span></div>'
+            '<div class="table-cell price"><span class="mobilelabel">Preis</span> 6,00 € </div>'
+            '<div class="table-cell price"><span class="mobilelabel">Ermäßigt</span> - </div></div></div></div>'
+            '<div class="table"><div class="table-header-group"><div class="table-row"><div class="table-head"> Saunatarif </div></div></div>'
+            '<div class="table-body-group"><div class="table-row"><div class="table-cell"> Tageskarte <span class="subtitle"></span></div>'
+            '<div class="table-cell price"> 23,00 € </div><div class="table-cell price"> 19,00 € </div></div></div></div>'
+            '<div class="facility_prices_content_footer"><ul><li>Kinder von 5 bis 14</li></ul></div>'
+            '</div>')
+        d = bbparse.parse_detail_page(html)
+        self.assertEqual(d["prices"][0], {"group": "Badetarif", "title": "90-Minuten-Ticket",
+                                          "note": "Nachzahlung möglich.", "price": "6,00 €", "reduced": None})
+        self.assertEqual((d["prices"][1]["group"], d["prices"][1]["title"], d["prices"][1]["reduced"]),
+                         ("Saunatarif", "Tageskarte", "19,00 €"))
+        self.assertEqual(d["price_notes"], ["Kinder unter 5 frei."])
+        self.assertEqual(d["reduced_for"], ["Kinder von 5 bis 14"])
+
+
 class ClassificationTests(unittest.TestCase):
     def test_sauna_mixed_is_public(self):
         self.assertEqual(bbparse.slot_kind("gemischt"), "public")

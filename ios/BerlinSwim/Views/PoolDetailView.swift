@@ -80,6 +80,9 @@ struct PoolDetailView: View {
                 if !weekWindows.isEmpty {
                     DetailSection(title: "Öffentliches Schwimmen") { week }
                 }
+                if !saunaDays.isEmpty {
+                    DetailSection(title: "Sauna") { sauna }
+                }
                 if !pool.waterTemps.isEmpty {
                     DetailSection(title: "Wassertemperatur") { water }
                 }
@@ -89,6 +92,9 @@ struct PoolDetailView: View {
                 }
                 if !pool.accessibility.isEmpty {
                     DetailSection(title: "Barrierefreiheit") { FeatureChips(items: pool.accessibility, notes: []) }
+                }
+                if let prices = pool.prices, !prices.isEmpty {
+                    DetailSection(title: "Preise") { priceList(prices) }
                 }
                 DetailSection(title: "Anfahrt", padded: false) { directions }
                 links
@@ -214,6 +220,110 @@ struct PoolDetailView: View {
     }
 
     /// One row per basin – scales from one to many basins without squeezing.
+    // MARK: Sauna
+
+    /// Sauna slots of the next 7 days (sauna areas only; no closed/private slots).
+    private var saunaDays: [(day: Date, slots: [Slot])] {
+        let saunaAreas = pool.areas.filter { $0.kind == .sauna }
+        guard !saunaAreas.isEmpty else { return [] }
+        let cal = Calendar.berlin
+        let days = (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: cal.startOfDay(for: model.now)) }
+        let result = days.map { day in
+            (day, saunaAreas.flatMap(\.slots)
+                .filter { $0.kind != .private && cal.isDate($0.start, inSameDayAs: day) }
+                .sorted { $0.start < $1.start })
+        }
+        return result.contains { !$0.1.isEmpty } ? result : []
+    }
+
+    /// Weekly sauna times, same layout as the public swimming table; women-only days are labelled.
+    private var sauna: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(saunaDays.enumerated()), id: \.offset) { offset, entry in
+                let rowLayout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                rowLayout {
+                    Text(offset == 0 ? String(localized: "Heute") : entry.day.formatted(.dateTime.weekday(.wide).locale(.autoupdatingCurrent)))
+                        .fontWeight(offset == 0 ? .semibold : .regular)
+                        .frame(width: dynamicTypeSize.isAccessibilitySize ? nil : dayColumnWidth, alignment: .leading)
+                    if entry.slots.isEmpty {
+                        Text("–").opacity(0.7)
+                    } else {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(entry.slots, id: \.self) { s in
+                                Text(Fmt.rangeUhr(s.start, s.end) + (s.kind == .restricted ? " · " + s.shortLabel : ""))
+                            }
+                        }
+                    }
+                    Spacer()
+                }
+                .font(.subheadline.monospacedDigit())
+                .padding(.vertical, 8)
+                if offset < saunaDays.count - 1 { Divider().overlay(.white.opacity(0.2)) }
+            }
+        }
+    }
+
+    // MARK: Prices
+
+    /// "90-Minuten-Ticket (Kategorie 2)" → "90-Minuten-Ticket" (the category is shown once above).
+    private func ticketName(_ title: String) -> String {
+        siteTerm(title.replacingOccurrences(of: #"\s*\(Kategorie \d\)"#, with: "", options: .regularExpression))
+    }
+
+    private func priceList(_ prices: [Price]) -> some View {
+        let groups = prices.reduce(into: [String?]()) { if !$0.contains($1.group) { $0.append($1.group) } }
+        return VStack(alignment: .leading, spacing: 12) {
+            if let category = pool.category {
+                Text("Bad-Kategorie \(category)").font(.footnote.weight(.semibold)).opacity(0.85)
+            }
+            ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                VStack(alignment: .leading, spacing: 0) {
+                    if groups.count > 1, let group {
+                        Text(siteTerm(group)).font(.subheadline.weight(.semibold)).padding(.bottom, 4)
+                    }
+                    let rows = prices.filter { $0.group == group }
+                    ForEach(Array(rows.enumerated()), id: \.offset) { i, p in
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(ticketName(p.title))
+                                if let note = p.note { Text(note).font(.footnote).opacity(0.85) }
+                            }
+                            Spacer(minLength: 12)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                if let price = p.price { Text(price).fontWeight(.semibold) }
+                                if let reduced = p.reduced {
+                                    Text("ermäßigt \(reduced)").font(.footnote).opacity(0.85)
+                                }
+                            }
+                            .monospacedDigit()
+                        }
+                        .font(.subheadline)
+                        .padding(.vertical, 8)
+                        if i < rows.count - 1 { Divider().overlay(.white.opacity(0.2)) }
+                    }
+                }
+            }
+            if let notes = pool.priceNotes, !notes.isEmpty {
+                ForEach(notes, id: \.self) { Text($0).font(.footnote).opacity(0.85) }
+            }
+            if let reducedFor = pool.reducedFor, !reducedFor.isEmpty {
+                DisclosureGroup {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(reducedFor, id: \.self) { Text("• " + $0) }
+                    }
+                    .font(.footnote)
+                    .opacity(0.9)
+                    .padding(.top, 6)
+                } label: {
+                    Text("Wer zahlt ermäßigt?").font(.footnote.weight(.semibold))
+                }
+                .tint(.white)
+            }
+        }
+    }
+
     private var water: some View {
         VStack(spacing: 0) {
             ForEach(Array(pool.waterTemps.enumerated()), id: \.offset) { i, w in

@@ -55,6 +55,12 @@ public struct Pool: Codable, Sendable, Identifiable, Hashable {
     public var closures: [Closure]
     public var rules: Rules
     public var areas: [Area]
+    /// Ticket prices from the pool page (optional: older feeds don't have them).
+    public var prices: [Price]? = nil
+    /// e.g. "Kinder unter 5 Jahren haben in Begleitung Erwachsener kostenlosen Eintritt."
+    public var priceNotes: [String]? = nil
+    /// Who gets the reduced price.
+    public var reducedFor: [String]? = nil
 
     /// "Kombibad Seestraße - Hallenbad" -> "Kombibad Seestraße" (otherwise the full name).
     public var shortName: String {
@@ -87,6 +93,15 @@ public struct Pool: Codable, Sendable, Identifiable, Hashable {
     public var warnings: [Notice] { notices.filter { $0.severity != .info } }
 
     public func has(_ feature: Feature) -> Bool { feature.matches(self) }
+}
+
+public struct Price: Codable, Sendable, Hashable {
+    /// "Badetarif" / "Saunatarif"
+    public var group: String?
+    public var title: String
+    public var note: String?
+    public var price: String?
+    public var reduced: String?
 }
 
 public struct WaterTemp: Codable, Sendable, Hashable {

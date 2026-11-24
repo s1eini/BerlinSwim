@@ -31,6 +31,17 @@
         }
       }
     },
+    "150-Minuten-Ticket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "150-minute ticket"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "25-m-Becken": {
       "localizations": {
         "en": {
@@ -42,12 +53,34 @@
       },
       "extractionState": "manual"
     },
+    "3-Stunden-Karte": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3-hour pass"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "50-m-Becken": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "50 m pool"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "90-Minuten-Ticket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90-minute ticket"
           }
         }
       },
@@ -143,6 +176,28 @@
           }
         }
       }
+    },
+    "Badespaß - Tagesticket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family day ticket"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Badetarif": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swimming"
+          }
+        }
+      },
+      "extractionState": "manual"
     },
     "Barrierefrei": {
       "localizations": {
@@ -619,6 +674,28 @@
       },
       "extractionState": "manual"
     },
+    "Sauna-Chip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauna chip"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Saunatarif": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauna"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Schul- & Vereinsbetrieb": {
       "localizations": {
         "en": {
@@ -751,6 +828,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Beach chair hire"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Tageskarte": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day pass"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Tagesticket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day ticket"
           }
         }
       },

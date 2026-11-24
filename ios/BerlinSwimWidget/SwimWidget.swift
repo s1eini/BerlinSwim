@@ -172,7 +172,7 @@ struct SwimWidgetView: View {
     /// Travel time, lane length (medium/large only) and, if known, occupancy.
     private func facts(_ plan: SwimPlan, lane: Bool = false) -> some View {
         HStack(spacing: 4) {
-            if plan.travelKnown { FactChip(text: plan.travelText, symbol: entry.mode.symbol, compact: true) }
+            if plan.travelKnown { FactChip(text: plan.travelText, symbol: TravelMode.travelSymbol, compact: true) }
             if lane, let l = plan.window?.laneLength ?? plan.pool.laneLength {
                 FactChip(text: "\(l) m", compact: true)
             }

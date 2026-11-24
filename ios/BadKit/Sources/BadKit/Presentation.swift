@@ -61,6 +61,12 @@ public enum Fmt {
     }
 }
 
+public extension TravelMode {
+    /// Mode-neutral route glyph for travel-time chips. The chosen mode is named in the header;
+    /// a vehicle symbol could be wrong (an ÖPNV "trip" to a nearby pool may be walking only).
+    static let travelSymbol = "point.bottomleft.forward.to.point.topright.scurvepath"
+}
+
 public extension SwimPlan.Status {
     var title: String {
         switch self {

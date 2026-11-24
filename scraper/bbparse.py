@@ -209,7 +209,79 @@ def parse_detail_page(s: str) -> dict:
     d["transit"] = m.group(1) if m else None
 
     d["areas"] = parse_opening_areas(toks)
+    d.update(parse_prices(toks))
     return d
+
+
+def parse_prices(toks: list[Tok]) -> dict:
+    """Price table in the 'Preise' accordion: rows of ticket / price / reduced price,
+    plus intro notes and the list of who gets the reduced price."""
+    out: dict = {"prices": [], "price_notes": [], "reduced_for": []}
+    start = find_open(toks, "facility_prices_content")
+    if start < 0:
+        return out
+    end = find_matching_close(toks, start)
+    group = None
+    k = start + 1
+    while k < end:
+        t = toks[k]
+        if t.kind != "open":
+            k += 1
+            continue
+        cls = t.cls()
+        if "table-header-group" in cls:
+            close = find_matching_close(toks, k)
+            head = find_open(toks, "table-head", k)
+            if 0 <= head < close:
+                group = text_between(toks, head, find_matching_close(toks, head)) or None  # "Badetarif" / "Saunatarif"
+            k = close
+        elif "facility_prices_content_intro" in cls:
+            close = find_matching_close(toks, k)
+            txt = text_between(toks, k, close)
+            # the category sentence is shown separately; keep only real notes (e.g. "Kinder unter 5 ...")
+            if txt and "Bad-Kategorie" not in txt:
+                out["price_notes"].append(txt)
+            k = close
+        elif "table-body-group" in cls:
+            close = find_matching_close(toks, k)
+            r = k + 1
+            while r < close:
+                if toks[r].kind == "open" and "table-row" in toks[r].cls():
+                    row_end = find_matching_close(toks, r)
+                    cells = [c for c in range(r + 1, row_end)
+                             if toks[c].kind == "open" and ("table-cell" in toks[c].cls())]
+                    if len(cells) >= 2:
+                        first_end = find_matching_close(toks, cells[0])
+                        sub = find_open(toks, "subtitle", cells[0])
+                        note = ""
+                        if 0 <= sub < first_end:
+                            note = text_between(toks, sub, find_matching_close(toks, sub))
+                        title = " ".join(
+                            tk.text for tk in toks[cells[0]:first_end]
+                            if tk.kind == "text" and tk.text not in ("Badetarif:", "Saunatarif:") and tk.text != note
+                        ).strip()
+                        def price(c: int) -> str | None:
+                            txt = text_between(toks, c, find_matching_close(toks, c))
+                            txt = re.sub(r"^(Preis|Ermäßigt)\s*", "", txt).strip()
+                            return None if txt in ("", "-") else txt
+                        out["prices"].append({
+                            "group": group, "title": title, "note": note or None,
+                            "price": price(cells[1]),
+                            "reduced": price(cells[2]) if len(cells) > 2 else None,
+                        })
+                    r = row_end
+                r += 1
+            k = close
+        elif "facility_prices_content_footer" in cls:
+            close = find_matching_close(toks, k)
+            for li in range(k + 1, close):
+                if toks[li].kind == "open" and toks[li].name == "li":
+                    txt = text_between(toks, li, find_matching_close(toks, li))
+                    if txt:
+                        out["reduced_for"].append(txt)
+            k = close
+        k += 1
+    return out
 
 
 def alert_items(toks: list[Tok], i: int) -> list[str]:
