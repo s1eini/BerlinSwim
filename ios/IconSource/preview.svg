@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B74DB"/><stop offset="1" stop-color="#17B3C9"/>
+    </linearGradient>
+    <clipPath id="sq"><rect width="1024" height="1024" rx="230"/></clipPath>
+  </defs>
+  <g clip-path="url(#sq)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <image href="swimmer.svg" width="1024" height="1024"/>
+    <image href="waves.svg" width="1024" height="1024"/>
+  </g>
+</svg>

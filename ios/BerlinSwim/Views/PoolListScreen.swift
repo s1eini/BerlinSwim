@@ -30,6 +30,7 @@ struct PoolListScreen: View {
                     }
                     section("Favoriten", favorites)
                     section("Erreichbar", reachable)
+                    if noneLeftToday { noneLeftTodayView }
                     if !others.isEmpty {
                         DisclosureGroup(isExpanded: $showAll) {
                             LazyVStack(spacing: 12) { cards(others) }.padding(.top, 8)
@@ -101,6 +102,48 @@ struct PoolListScreen: View {
                     }
                 }
         }
+    }
+
+    /// Data is there, but nothing is reachable with enough time anymore today.
+    private var noneLeftToday: Bool {
+        !model.plans.isEmpty && !model.plans.contains { $0.status <= .tight }
+    }
+
+    /// The pool that opens next (any pool in the current filters).
+    private var nextUp: (plan: SwimPlan, start: Date)? {
+        model.plans.compactMap { p in p.nextWindow.map { (p, $0.start) } }
+            .filter { $0.1 > model.now }
+            .min { $0.1 < $1.1 }
+    }
+
+    /// Centered placeholder like the widget's: moon, message, and the next pool to open (tappable).
+    private var noneLeftTodayView: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "moon.zzz.fill")
+                .font(.system(size: 44))
+                .padding(.bottom, 4)
+            Text("Heute kein Bad mehr erreichbar")
+                .font(.title3.weight(.semibold))
+            if let next = nextUp {
+                // Plain text (still tappable): "Stadtbad … / öffnet morgen um 06:00 Uhr"
+                NavigationLink(value: next.plan.pool) {
+                    VStack(spacing: 2) {
+                        Text(next.plan.pool.shortName)
+                            .font(.subheadline.weight(.semibold))
+                        Text(Fmt.opens(next.start, relativeTo: model.now))
+                            .font(.subheadline)
+                            .monospacedDigit()
+                    }
+                    .opacity(0.85)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
 
     private var emptyState: some View {
@@ -287,6 +330,11 @@ struct FilterBar: View {
 
 #Preview("Startseite · 21:15") {
     RootView().environment(AppModel.preview(hour: 21, minute: 15))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Startseite · alles zu (23:00)") {
+    RootView().environment(AppModel.preview(hour: 23, minute: 0))
         .preferredColorScheme(.dark)
 }
 

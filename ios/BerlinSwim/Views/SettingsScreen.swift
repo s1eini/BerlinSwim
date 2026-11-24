@@ -4,6 +4,18 @@ import SwiftUI
 struct SettingsScreen: View {
     @Environment(AppModel.self) private var model
 
+    /// "0.1.0 (1)" – marketing version and build number.
+    static let version: String = {
+        let info = Bundle.main.infoDictionary
+        let v = info?["CFBundleShortVersionString"] as? String ?? "–"
+        let b = info?["CFBundleVersion"] as? String ?? "–"
+        return "\(v) (\(b))"
+    }()
+
+    /// Ko-fi link from Info.plist (`SUPPORT_URL` in project.yml); empty = row hidden.
+    static let supportURL: URL? = (Bundle.main.object(forInfoDictionaryKey: "SupportURL") as? String)
+        .flatMap { $0.isEmpty ? nil : URL(string: $0) }
+
     var body: some View {
         @Bindable var model = model
         NavigationStack {
@@ -65,8 +77,20 @@ struct SettingsScreen: View {
                     }
                 } header: {
                     Text("Daten")
-                } footer: {
+                }
+
+                Section {
                     Text("Inoffizielle App. Alle Angaben stammen von der Webseite der Berliner Bäder-Betriebe und sind ohne Gewähr.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    LabeledContent("Version", value: Self.version)
+                    if let support = Self.supportURL {
+                        Link(destination: support) {
+                            Label("Kaffee spendieren (Ko-fi)", systemImage: "cup.and.heat.waves")
+                        }
+                    }
+                } header: {
+                    Text("Über")
                 }
             }
             .navigationTitle("Einstellungen")

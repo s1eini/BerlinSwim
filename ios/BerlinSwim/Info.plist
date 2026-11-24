@@ -37,6 +37,8 @@
 	<string>Damit du siehst, welche Bäder du von hier aus noch rechtzeitig erreichst.</string>
 	<key>PoolsFeedURL</key>
 	<string>$(POOLS_FEED_URL)</string>
+	<key>SupportURL</key>
+	<string>$(SUPPORT_URL)</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

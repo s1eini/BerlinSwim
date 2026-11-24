@@ -35,6 +35,17 @@ public enum Fmt {
     /// "07:45–18:00 Uhr" in German, plain range in English.
     public static func rangeUhr(_ a: Date, _ b: Date) -> String { L("\(range(a, b)) Uhr") }
 
+    /// "öffnet um 18:00 Uhr" today, "öffnet morgen um 06:00 Uhr", "öffnet Donnerstag um 06:00 Uhr".
+    public static func opens(_ d: Date, relativeTo now: Date = .now) -> String {
+        let cal = Calendar.berlin, time = clock(d)
+        if cal.isDate(d, inSameDayAs: now) { return L("öffnet um \(time) Uhr") }
+        if let tomorrow = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: tomorrow) {
+            return L("öffnet morgen um \(time) Uhr")
+        }
+        let weekday = d.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.wide).locale(.autoupdatingCurrent))
+        return L("öffnet \(weekday) um \(time) Uhr")
+    }
+
     public static func dayFrom(_ d: Date, relativeTo now: Date = .now, clock: (Date) -> String = Fmt.clock) -> String {
         let cal = Calendar.berlin
         if cal.isDate(d, inSameDayAs: now) { return L("ab \(clock(d))") }

@@ -1,0 +1,112 @@
+{
+  "features" : [
+    "refractivity",
+    "specular-location"
+  ],
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.09020,0.70196,0.78824,1.00000",
+      "srgb:0.10588,0.45490,0.85882,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "blur-material" : 0.5,
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.97052,0.37472,0.55873,1.00000",
+              "display-p3:1.05243,0.44472,0.63241,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.6701066428597573,
+                "y" : 0
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 1
+              }
+            }
+          },
+          "glass" : true,
+          "image-name" : "swimmer.svg",
+          "name" : "swimmer",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              -55
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "shadow" : {
+        "kind" : "layer-color",
+        "opacity" : 0.5
+      },
+      "specular" : "inside",
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.3
+      }
+    },
+    {
+      "blend-mode" : "normal",
+      "blur-material" : null,
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.42927,0.94456,0.99234,0.67949",
+              "display-p3:0.38545,0.83093,0.93635,0.67949"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.8849683970552701,
+                "y" : 0.10627235599104339
+              },
+              "stop" : {
+                "x" : 0.17171641529630158,
+                "y" : 1
+              }
+            }
+          },
+          "image-name" : "waves.svg",
+          "name" : "waves",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              -22
+            ]
+          }
+        }
+      ],
+      "opacity" : 1,
+      "refractivity" : {
+        "depth" : 0.054609375,
+        "enabled" : true,
+        "strength" : 0.56171875
+      },
+      "shadow" : {
+        "kind" : "layer-color",
+        "opacity" : 0.5
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.31
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

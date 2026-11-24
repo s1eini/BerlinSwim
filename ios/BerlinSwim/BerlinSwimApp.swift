@@ -3,7 +3,14 @@ import SwiftUI
 
 @main
 struct BerlinSwimApp: App {
-    @State private var model = AppModel()
+    @State private var model: AppModel = {
+        #if DEBUG
+        // Screenshot aid: `-previewHour 23` runs on the bundled seed data at a fixed time (no network/location).
+        let hour = UserDefaults.standard.integer(forKey: "previewHour")
+        if hour > 0 { return AppModel.preview(hour: hour) }
+        #endif
+        return AppModel()
+    }()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
