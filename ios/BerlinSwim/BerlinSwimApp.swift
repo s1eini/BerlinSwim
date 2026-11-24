@@ -43,7 +43,18 @@ enum AppTab: Hashable { case pools, map, settings, search }
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @State private var tab: AppTab = .pools
+    @State private var tab: AppTab = {
+        #if DEBUG
+        // Screenshot aid: `-tab settings|map|search`
+        switch UserDefaults.standard.string(forKey: "tab") {
+        case "settings": return .settings
+        case "map": return .map
+        case "search": return .search
+        default: break
+        }
+        #endif
+        return .pools
+    }()
 
     var body: some View {
         @Bindable var model = model

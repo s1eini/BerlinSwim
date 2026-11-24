@@ -95,6 +95,7 @@ struct SettingsScreen: View {
             }
             .navigationTitle("Einstellungen")
         }
+        .readableContentMargins()
     }
 }
 
@@ -129,6 +130,7 @@ struct SearchScreen: View {
                     }
                 }
             }
+            .readableContentMargins()
             .navigationTitle("Suche")
             .searchable(text: $query, prompt: "Bad, Bezirk, Ausstattung")
             .navigationDestination(for: Pool.self) { pool in
@@ -147,3 +149,24 @@ struct SearchScreen: View {
     SearchScreen().environment(AppModel.preview()).preferredColorScheme(.dark)
 }
 #endif
+
+/// Readable width for Form/List on wide windows (iPad, unfolded foldables), the SwiftUI counterpart
+/// of UIKit's readableContentGuide: insets only the scroll content via `contentMargins`, so the
+/// navigation bar, its background, the title and the scroll indicator keep the full width.
+/// Kicks in from 740 pt so the margin never drops below the list's own ~20 pt inset (otherwise the
+/// content would get wider while the window grows). No effect on iPhone.
+private struct ReadableContentMargins: ViewModifier {
+    static let maxContentWidth: CGFloat = 700
+    @State private var width: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        let margin = (width - Self.maxContentWidth) / 2
+        content
+            .contentMargins(.horizontal, width >= Self.maxContentWidth + 40 ? margin : nil, for: .scrollContent)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+}
+
+extension View {
+    func readableContentMargins() -> some View { modifier(ReadableContentMargins()) }
+}

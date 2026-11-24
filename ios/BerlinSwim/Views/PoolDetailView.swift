@@ -95,6 +95,8 @@ struct PoolDetailView: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 40)
+            .frame(maxWidth: 720) // iPad: readable column
+            .frame(maxWidth: .infinity)
         }
         .scrollIndicators(.hidden)
         .background(WaterBackground(status: plan.status, date: model.now).ignoresSafeArea())

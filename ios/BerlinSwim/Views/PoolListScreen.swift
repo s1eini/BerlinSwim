@@ -46,6 +46,8 @@ struct PoolListScreen: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
+                .frame(maxWidth: 720) // iPad: readable column instead of full-width cards
+                .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.hidden)
             .background(WaterBackground(status: model.plans.first?.status, date: model.now).ignoresSafeArea())
