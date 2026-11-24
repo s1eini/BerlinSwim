@@ -590,17 +590,6 @@
         }
       }
     },
-    "Standort nicht freigegeben – rechne ab Alexanderplatz" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Location off – times are from Alexanderplatz"
-          }
-        }
-      }
-    },
     "Suche" : {
       "localizations" : {
         "en" : {
