@@ -1,1 +1,1 @@
-New: the app is now called Berlin Swim, has a new icon, works in English and without location access (pools are then sorted by opening times). Please check above all whether "swim until" and "opens at" match what you find at the pool.
+New: pool data now comes from berlinswim.eatbl.de (build 2 stopped getting updates). Easier to read, and large text and VoiceOver work properly. "Swim until" now replaces "open until" (time you have to be out of the water). Please check whether the times match what you find at the pool.

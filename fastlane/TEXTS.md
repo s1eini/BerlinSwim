@@ -19,6 +19,7 @@ Run from the repository root:
 - `fastlane metadata`: upload texts, URLs and categories to the version in "Prepare for Submission" (no binary, no screenshots, no submission)
 - `fastlane beta_info`: TestFlight test information (beta description from `testflight/beta_description/`, feedback email, privacy URL) for de-DE and en-GB
 - `fastlane beta_status`: read-only overview of the latest builds, beta review state and test information
+- `fastlane external`: give the current build to the TestFlight group "external" with the What to Test notes (submits for beta review if needed)
 - `fastlane testflight_notes`: set "What to Test" for the current build (version/build from `ios/project.yml`)
 
 Edit texts here, not in App Store Connect: the next upload overwrites manual changes.

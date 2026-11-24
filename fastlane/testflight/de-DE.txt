@@ -1,1 +1,1 @@
-Neu: App heißt jetzt Berlin Swim, neues Icon, auf Englisch nutzbar und ohne Standort (dann nach Öffnungszeiten sortiert). Bitte vor allem prüfen, ob „schwimmen bis“ und „öffnet um“ mit dem Bad vor Ort übereinstimmen.
+Neu: Bäderdaten kommen jetzt von berlinswim.eatbl.de (in Build 2 wurden sie nicht mehr aktualisiert). Besser lesbar, große Schrift und VoiceOver funktionieren. Statt „offen bis“ steht jetzt „schwimmen bis“ (Badeschluss). Bitte prüfen, ob die Zeiten mit dem Bad vor Ort übereinstimmen.

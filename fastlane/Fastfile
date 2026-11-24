@@ -127,14 +127,33 @@ platform :ios do
     notes = ->(lang) { File.read(File.join(TESTFLIGHT_NOTES, "#{lang}.txt")).strip }
     upload_to_testflight(
       distribute_only: true,
+      app_platform: "ios",
       app_version: VERSION,
       build_number: BUILD,
       localized_build_info: {
         "de-DE" => { whats_new: notes.call("de-DE") },
         "en-GB" => { whats_new: notes.call("en-GB") }
       },
-      skip_waiting_for_build_processing: true,
       notify_external_testers: false
+      # no skip_waiting_for_build_processing: with it, fastlane silently skips setting notes/distributing
+    )
+  end
+
+  desc "Give build #{BUILD} of #{VERSION} to the TestFlight group 'external' (submits for beta review if needed)"
+  lane :external do
+    notes = ->(lang) { File.read(File.join(TESTFLIGHT_NOTES, "#{lang}.txt")).strip }
+    upload_to_testflight(
+      distribute_only: true,
+      app_platform: "ios",
+      app_version: VERSION,
+      build_number: BUILD,
+      distribute_external: true,
+      groups: ["external"],
+      notify_external_testers: true,
+      localized_build_info: {
+        "de-DE" => { whats_new: notes.call("de-DE") },
+        "en-GB" => { whats_new: notes.call("en-GB") }
+      }
     )
   end
 end
