@@ -714,6 +714,16 @@
         }
       }
     },
+    "Spätestens um %@ Uhr dort sein": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Be there by %@"
+          }
+        }
+      }
+    },
     "Strandbad": {
       "localizations": {
         "en": {

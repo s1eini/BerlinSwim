@@ -33,9 +33,10 @@ public enum PreviewData {
     }
 
     public static func plans(preferences: SwimPreferences = SwimPreferences(),
-                             now: Date = PreviewData.now()) -> [SwimPlan] {
+                             now: Date = PreviewData.now(), location: Bool = true) -> [SwimPlan] {
         let table = TravelTimeTable(origin: origin, mode: preferences.travelMode)
-        return SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy) {
+        return SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy,
+                                                           travelKnown: location) {
             table.travel(to: $0)
         }
     }

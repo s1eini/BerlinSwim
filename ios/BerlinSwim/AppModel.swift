@@ -45,6 +45,8 @@ final class AppModel {
     @ObservationIgnored private var started = false
     /// Frozen clock for previews.
     @ObservationIgnored private var fixedNow: Date?
+    /// Previews: fixed origin (`nil` = no location).
+    @ObservationIgnored private var previewOrigin: (lat: Double, lon: Double)??
 
     init() {
         preferences = SharedState.loadPreferences()
@@ -52,7 +54,15 @@ final class AppModel {
 
     var pools: [Pool] { feed?.pools ?? [] }
 
+    /// Travel times only make sense with a real position: live location, or a stored one
+    /// as long as access isn't denied. Otherwise the app works on opening times only.
+    var travelKnown: Bool {
+        if let previewOrigin { return previewOrigin != nil }
+        return !locationDenied && (location != nil || SharedState.lastLocation() != nil)
+    }
+
     var origin: (lat: Double, lon: Double) {
+        if let p = previewOrigin, let o = p { return o }
         if let c = location?.coordinate { return (c.latitude, c.longitude) }
         if let l = SharedState.lastLocation() { return (l.lat, l.lon) }
         return Geo.berlinCenter
@@ -65,7 +75,10 @@ final class AppModel {
     func plan(for pool: Pool) -> SwimPlan {
         plans.first { $0.pool.id == pool.id }
             ?? allPlans.first { $0.pool.id == pool.id }
-            ?? SwimPlanner(preferences: preferences).plan(for: pool, now: now, travel: travelTable.travel(to: pool).0)
+            ?? SwimPlanner(preferences: preferences).plans(for: [pool], now: now, travelKnown: travelKnown) {
+                travelTable.travel(to: $0)
+            }.first
+            ?? SwimPlanner(preferences: preferences).plan(for: pool, now: now, travel: 0)
     }
 
     func isFavorite(_ pool: Pool) -> Bool { preferences.favorites.contains(pool.id) }
@@ -127,7 +140,8 @@ final class AppModel {
     private func recompute() {
         now = fixedNow ?? Date()
         let table = travelTable
-        plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy) {
+        let known = travelKnown
+        plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy, travelKnown: known) {
             table.travel(to: $0)
         }
         var unfiltered = preferences
@@ -135,7 +149,7 @@ final class AppModel {
         unfiltered.avoidCrowded = false
         unfiltered.minLaneLength = nil
         unfiltered.showOutOfService = true
-        allPlans = SwimPlanner(preferences: unfiltered).plans(for: pools, now: now, occupancy: occupancy) {
+        allPlans = SwimPlanner(preferences: unfiltered).plans(for: pools, now: now, occupancy: occupancy, travelKnown: known) {
             table.travel(to: $0)
         }
     }
@@ -147,7 +161,7 @@ final class AppModel {
         do {
             for try await update in CLLocationUpdate.liveUpdates(.otherNavigation) {
                 if update.authorizationDenied || update.authorizationDeniedGlobally {
-                    locationDenied = true
+                    if !locationDenied { locationDenied = true; recompute() } // switch to opening-times mode
                     continue
                 }
                 guard let loc = update.location else { continue }
@@ -162,6 +176,7 @@ final class AppModel {
             }
         } catch {
             locationDenied = true
+            recompute()
         }
     }
 
@@ -238,9 +253,11 @@ enum RoutingService {
 #if DEBUG
 extension AppModel {
     /// Model for Xcode previews: bundled seed data, sample occupancy, fixed clock, no network/location.
-    static func preview(hour: Int = 17, minute: Int = 30, configure: (inout SwimPreferences) -> Void = { _ in }) -> AppModel {
+    static func preview(hour: Int = 17, minute: Int = 30, location: Bool = true,
+                        configure: (inout SwimPreferences) -> Void = { _ in }) -> AppModel {
         let m = AppModel()
         m.started = true // never start network/location tasks
+        m.previewOrigin = .some(location ? PreviewData.origin : nil)
         m.fixedNow = PreviewData.now(hour: hour, minute: minute)
         m.feed = PreviewData.feed
         m.occupancy = PreviewData.occupancy

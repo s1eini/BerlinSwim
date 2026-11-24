@@ -100,7 +100,8 @@ struct SwimProvider: AppIntentTimelineProvider {
         return (0..<count).map { i in
             let date = start.addingTimeInterval(TimeInterval(i * 5 * 60))
             // Live occupancy only describes "now"; don't carry it into later entries.
-            let plans = planner.plans(for: pools, now: date, occupancy: i < 3 ? occupancy : [:]) { table.travel(to: $0) }
+            let plans = planner.plans(for: pools, now: date, occupancy: i < 3 ? occupancy : [:],
+                                      travelKnown: usesLocation) { table.travel(to: $0) }
             return SwimEntry(date: date, plans: plans, mode: prefs.travelMode, trainingMinutes: prefs.trainingMinutes,
                              dataDate: feed?.generatedAt, usesLocation: usesLocation, lane: lane)
         }
@@ -108,6 +109,8 @@ struct SwimProvider: AppIntentTimelineProvider {
 
     private func currentOrigin() -> ((lat: Double, lon: Double), Bool) {
         let manager = CLLocationManager()
+        // Denied: no travel times at all (even if an old position is stored).
+        if [.denied, .restricted].contains(manager.authorizationStatus) { return (Geo.berlinCenter, false) }
         if manager.isAuthorizedForWidgetUpdates, let c = manager.location?.coordinate {
             return ((c.latitude, c.longitude), true)
         }
@@ -156,7 +159,8 @@ struct SwimWidgetView: View {
 
     /// "45 min Training · Anreise mit ÖPNV · 50 m"
     private var headerText: String {
-        [String(localized: "\(Fmt.minutes(entry.trainingMinutes)) Training"), entry.mode.arrivalText, entry.lane.map { "\($0) m" }]
+        [String(localized: "\(Fmt.minutes(entry.trainingMinutes)) Training"),
+         entry.usesLocation ? entry.mode.arrivalText : nil, entry.lane.map { "\($0) m" }]
             .compactMap { $0 }.joined(separator: " · ")
     }
 
@@ -168,7 +172,7 @@ struct SwimWidgetView: View {
     /// Travel time, lane length (medium/large only) and, if known, occupancy.
     private func facts(_ plan: SwimPlan, lane: Bool = false) -> some View {
         HStack(spacing: 4) {
-            FactChip(text: plan.travelText, symbol: entry.mode.symbol, compact: true)
+            if plan.travelKnown { FactChip(text: plan.travelText, symbol: entry.mode.symbol, compact: true) }
             if lane, let l = plan.window?.laneLength ?? plan.pool.laneLength {
                 FactChip(text: "\(l) m", compact: true)
             }
@@ -305,13 +309,15 @@ struct SwimWidgetView: View {
 #if DEBUG
 extension SwimEntry {
     /// Entry from the bundled seed at a fixed time (see `PreviewData`).
-    static func preview(hour: Int = 17, minute: Int = 30, lane: Int? = nil, training: Int = 45) -> SwimEntry {
+    static func preview(hour: Int = 17, minute: Int = 30, lane: Int? = nil, training: Int = 45,
+                        location: Bool = true) -> SwimEntry {
         var prefs = SwimPreferences()
         prefs.trainingMinutes = training
         prefs.minLaneLength = lane
         let now = PreviewData.now(hour: hour, minute: minute)
-        return SwimEntry(date: now, plans: PreviewData.plans(preferences: prefs, now: now), mode: prefs.travelMode,
-                         trainingMinutes: training, dataDate: PreviewData.feed?.generatedAt, usesLocation: true, lane: lane)
+        return SwimEntry(date: now, plans: PreviewData.plans(preferences: prefs, now: now, location: location),
+                         mode: prefs.travelMode, trainingMinutes: training, dataDate: PreviewData.feed?.generatedAt,
+                         usesLocation: location, lane: lane)
     }
 }
 
@@ -331,6 +337,7 @@ extension SwimEntry {
     SwimWidget()
 } timeline: {
     SwimEntry.preview()
+    SwimEntry.preview(location: false)
     SwimEntry.preview(lane: 50)
     SwimEntry.preview(hour: 19, minute: 45)
     SwimEntry.preview(hour: 20, minute: 40)

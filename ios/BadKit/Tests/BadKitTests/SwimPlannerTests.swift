@@ -126,6 +126,24 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         #expect(String(localized: "Geschlossen, \("Thursday") ab \("06:30") Uhr", bundle: en) == "Closed, opens Thursday at 06:30")
     }
 
+    @Test func withoutLocationTravelIsIgnoredAndSortedByOpeningTime() {
+        let early = makePool(id: 10, slots: [Slot(start: t(8), end: t(20), kind: .public)])   // swimEnd 19:30
+        let late = makePool(id: 11, slots: [Slot(start: t(8), end: t(22), kind: .public)])    // swimEnd 21:30
+        // with location, the closer pool wins; without, the one open longest comes first
+        let travel: (Pool) -> (TimeInterval, Bool) = { $0.id == 10 ? (300, false) : (3000, false) }
+        let known = planner().plans(for: [early, late], now: t(18), travel: travel)
+        #expect(known.map(\.pool.id) == [10, 11])
+        let unknown = planner().plans(for: [early, late], now: t(18), travelKnown: false, travel: travel)
+        #expect(unknown.map(\.pool.id) == [11, 10])
+        #expect(unknown.allSatisfy { !$0.travelKnown && $0.travel == 0 && $0.arrival == t(18) })
+    }
+
+    @Test func withoutLocationHintSaysBeThereBy() {
+        let p = planner().plans(for: [evening], now: t(19, 30), travelKnown: false) { _ in (0, false) }.first!
+        #expect(p.status == .goNow && p.closingSoon)
+        #expect(p.hint == L("Spätestens um \(Fmt.clock(p.leaveBy!)) Uhr dort sein"))
+    }
+
     @Test func goNowWithEnoughTime() {
         let plan = planner().plan(for: evening, now: t(18), travel: 20 * 60)
         #expect(plan.status == .goNow)

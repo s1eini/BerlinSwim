@@ -144,7 +144,12 @@ public extension SwimPlan {
 
     /// Extra advice that isn't already in the status line (detail header only).
     var hint: String? {
-        switch status {
+        if !travelKnown {
+            // No location: no "leave by" advice; only when you must be there at the latest.
+            guard status == .goNow, closingSoon, let leaveBy else { return nil }
+            return L("Spätestens um \(Fmt.clock(leaveBy)) Uhr dort sein")
+        }
+        return switch status {
         case .goNow: closingSoon ? leaveBy.map { L("Spätestens \(Fmt.clock($0)) losgehen") } : nil
         case .later:
             window.map { w in

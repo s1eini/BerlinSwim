@@ -237,7 +237,12 @@ struct PoolDetailView: View {
                     Button {
                         RoutingService.openDirections(to: pool, mode: mode)
                     } label: {
-                        Label("\(plan.travelText)", systemImage: mode.symbol)
+                        if plan.travelKnown {
+                            Label("\(plan.travelText)", systemImage: mode.symbol)
+                        } else {
+                            // no location: Apple Maps routes from the device position itself
+                            Label("Route", systemImage: "arrow.triangle.turn.up.right.diamond")
+                        }
                     }
                     .buttonStyle(.glass)
                     .controlSize(.small)

@@ -29,7 +29,7 @@ struct PoolListScreen: View {
                             .glassEffect(.regular, in: .capsule)
                     }
                     section("Favoriten", favorites)
-                    section("Erreichbar", reachable)
+                    section(model.travelKnown ? "Erreichbar" : "Jetzt offen", reachable)
                     if noneLeftToday { noneLeftTodayView }
                     if !others.isEmpty {
                         DisclosureGroup(isExpanded: $showAll) {
@@ -62,11 +62,23 @@ struct PoolListScreen: View {
         VStack(spacing: 2) {
             Text("Schwimmen gehen?")
                 .font(.system(size: 34, weight: .bold))
-            Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")
-                .font(.subheadline).opacity(0.85)
-            if model.locationDenied {
-                Text("Standort nicht freigegeben – rechne ab Alexanderplatz")
+            if model.travelKnown {
+                Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")
+                    .font(.subheadline).opacity(0.85)
+            } else {
+                Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · ohne Anreisezeit")
+                    .font(.subheadline).opacity(0.85)
+                Text("Standort aus – Bäder nach Öffnungszeit sortiert")
                     .font(.caption).opacity(0.8).padding(.top, 4)
+                if model.locationDenied {
+                    Button("Standort freigeben") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                    }
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.glass)
+                    .controlSize(.small)
+                    .padding(.top, 4)
+                }
             }
         }
         .foregroundStyle(.white)
@@ -122,7 +134,7 @@ struct PoolListScreen: View {
             Image(systemName: "moon.zzz.fill")
                 .font(.system(size: 44))
                 .padding(.bottom, 4)
-            Text("Heute kein Bad mehr erreichbar")
+            Text(model.travelKnown ? "Heute kein Bad mehr erreichbar" : "Heute kein Bad mehr offen")
                 .font(.title3.weight(.semibold))
             if let next = nextUp {
                 // Plain text (still tappable): "Stadtbad … / öffnet morgen um 06:00 Uhr"
@@ -211,7 +223,7 @@ struct PoolCard: View {
                 .fixedSize()
             }
             FlowLayout(spacing: 6) {
-                FactChip(text: plan.travelText, symbol: model.preferences.travelMode.symbol)
+                if plan.travelKnown { FactChip(text: plan.travelText, symbol: model.preferences.travelMode.symbol) }
                 if let lane = plan.window?.laneLength ?? plan.pool.laneLength { FactChip(text: "\(lane) m") }
                 if let t = plan.pool.waterTempC { FactChip(text: Fmt.temperature(t)) }
                 if plan.status <= .tight, let o = plan.occupancy { FactChip(text: o.shortTitle, symbol: "person.2.fill", tint: o.color) }
@@ -252,12 +264,14 @@ struct FilterBar: View {
         ScrollView(.horizontal) {
             GlassEffectContainer(spacing: 8) {
                 HStack(spacing: 8) {
-                    Menu {
-                        Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
-                            ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                    if model.travelKnown { // travel mode is meaningless without a location
+                        Menu {
+                            Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
+                                ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                            }
+                        } label: {
+                            pickerChip(model.preferences.travelMode.title, model.preferences.travelMode.symbol)
                         }
-                    } label: {
-                        pickerChip(model.preferences.travelMode.title, model.preferences.travelMode.symbol)
                     }
                     Menu {
                         Picker("Training", selection: $model.preferences.trainingMinutes) {
@@ -330,6 +344,11 @@ struct FilterBar: View {
 
 #Preview("Startseite · 21:15") {
     RootView().environment(AppModel.preview(hour: 21, minute: 15))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Startseite · ohne Standort") {
+    RootView().environment(AppModel.preview(location: false))
         .preferredColorScheme(.dark)
 }
 

@@ -134,6 +134,8 @@ public struct SwimPlan: Sendable, Identifiable, Hashable {
     public var closedReason: String?
     /// Live occupancy, if the site reports one for this pool.
     public var occupancy: Occupancy?
+    /// False when there is no usable location: travel is 0 and the plan is about opening times only.
+    public var travelKnown: Bool = true
     /// A women-only session still running/coming today that the plan does not count
     /// (because `includeWomenOnly` is off) – shown as a hint.
     public var womenOnlyToday: SwimWindow?
@@ -306,7 +308,9 @@ public struct SwimPlanner: Sendable {
     }
 
     /// All plans, filtered by required features (and crowding) and sorted: status, then travel time.
-    public func plans(for pools: [Pool], now: Date, occupancy: [Int: Occupancy] = [:],
+    /// `travelKnown: false` (no location): travel is ignored (arrival = now) and pools are sorted
+    /// by how long they're still open instead of by travel time.
+    public func plans(for pools: [Pool], now: Date, occupancy: [Int: Occupancy] = [:], travelKnown: Bool = true,
                       travel: (Pool) -> (TimeInterval, Bool)) -> [SwimPlan] {
         pools
             .filter { pool in preferences.showOutOfService || !pool.isOutOfService }
@@ -317,8 +321,9 @@ public struct SwimPlanner: Sendable {
             .filter { pool in preferences.requiredFeatures.allSatisfy { pool.has($0) } }
             .filter { pool in !(preferences.avoidCrowded && occupancy[pool.id]?.isCrowded == true) }
             .map { pool in
-                let (t, est) = travel(pool)
+                let (t, est) = travelKnown ? travel(pool) : (0, false)
                 var p = plan(for: pool, now: now, travel: t, travelIsEstimate: est)
+                p.travelKnown = travelKnown
                 if let o = occupancy[pool.id], let reason = o.closedReason {
                     p.status = .closed
                     p.closedReason = reason
@@ -334,6 +339,11 @@ public struct SwimPlanner: Sendable {
             .sorted { a, b in
                 if a.status != b.status { return a.status < b.status }
                 if a.status == .later, let sa = a.window?.start, let sb = b.window?.start, sa != sb { return sa < sb }
+                if !travelKnown {
+                    // open longest first; otherwise alphabetical
+                    if let ea = a.swimEnd, let eb = b.swimEnd, ea != eb, a.status <= .tight { return ea > eb }
+                    return a.pool.shortName.localizedStandardCompare(b.pool.shortName) == .orderedAscending
+                }
                 return a.travel < b.travel
             }
     }
