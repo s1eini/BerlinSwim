@@ -85,25 +85,33 @@ public extension SwimPlan {
         case .goNow: closingSoon ? L("noch \(Fmt.minutes(usableMinutes))") : swimEnd.map { L("bis \(Fmt.clock($0))") }
         case .tight: L("nur \(Fmt.minutes(usableMinutes))")
         case .later: window.map { L("ab \(Fmt.clock($0.start))") }
-        case .notToday, .closed: nextWindow.map { Fmt.dayFrom($0.start) }
+        case .notToday, .closed: nextWindow.map { Fmt.dayFrom($0.start, relativeTo: plannedAt) }
         }
     }
 
     /// Two-line time used by widget rows and list cards: small caption + value,
     /// e.g. "offen bis" / "21:30", "noch" / "45 min", "nur noch" / "20 min", "Geschlossen" / "morgen ab 06:30".
-    func timeLines(relativeTo now: Date = .now) -> (caption: String, value: String) {
-        switch status {
+    func timeLines(relativeTo now: Date? = nil) -> (caption: String, value: String) {
+        let now = now ?? plannedAt
+        return switch status {
         case .goNow where closingSoon: (L("noch"), Fmt.minutes(usableMinutes))
         case .goNow: (L("offen bis"), swimEnd.map(Fmt.clock) ?? "–")
         case .tight: (L("nur noch"), Fmt.minutes(usableMinutes))
-        case .later: (L("ab"), window.map { Fmt.clock($0.start) } ?? "–")
+        case .later: (L("öffnet"), window.map { Fmt.clock($0.start) } ?? "–")
         case .notToday, .closed: (status.title, nextWindow.map { Fmt.dayFrom($0.start, relativeTo: now) } ?? "")
         }
     }
 
-    /// "Offen bis 21:30" – status and detail in one line.
+    /// Title + detail for headers: "Offen" / "bis 21:30"; opening later today reads as one phrase:
+    /// "Öffnet um 06:00" (no "Später heute · ab 06:00").
+    var statusParts: (title: String, detail: String?) {
+        if status == .later, let w = window { return (L("Öffnet um \(Fmt.clock(w.start)) Uhr"), nil) }
+        return (status.title, statusDetail)
+    }
+
+    /// "Offen · bis 21:30" – status and detail in one line.
     var statusLine: String {
-        [status.title, statusDetail].compactMap { $0 }.joined(separator: " · ")
+        [statusParts.title, statusParts.detail].compactMap { $0 }.joined(separator: " · ")
     }
 
     /// Extra advice that isn't already in the status line (detail header only).
@@ -128,10 +136,12 @@ public extension SwimPlan {
     }
 
     /// True when you have to leave within the next 90 minutes to still get your training in.
+    /// The moment this plan was computed for ("now" of the planner), not the wall clock.
+    var plannedAt: Date { arrival.addingTimeInterval(-travel) }
+
     var closingSoon: Bool {
         guard status == .goNow, let leaveBy else { return false }
-        let now = arrival.addingTimeInterval(-travel)
-        return leaveBy.timeIntervalSince(now) < 90 * 60
+        return leaveBy.timeIntervalSince(plannedAt) < 90 * 60
     }
 
     var travelText: String {

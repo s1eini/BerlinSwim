@@ -59,8 +59,6 @@ struct PoolListScreen: View {
 
     private var header: some View {
         VStack(spacing: 2) {
-            Text(model.location == nil ? "Berlin" : "Mein Standort")
-                .font(.system(size: 15, weight: .semibold)).textCase(.uppercase).opacity(0.85)
             Text("Schwimmen gehen?")
                 .font(.system(size: 34, weight: .bold))
             Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")

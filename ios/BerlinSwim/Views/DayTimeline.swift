@@ -55,7 +55,9 @@ struct DayTimeline: View {
                 let w = geo.size.width
                 ZStack(alignment: .leading) {
                     Rectangle().fill(.white.opacity(0.08))
-                    ForEach(slots, id: \.self) { s in
+                    // Slots can overlap on the website (e.g. public 06:30–08:30 and clubs from 07:45):
+                    // draw clubs first and public last, so public time is never hidden.
+                    ForEach(slots.sorted { drawOrder($0.kind) < drawOrder($1.kind) }, id: \.self) { s in
                         Rectangle()
                             .fill(color(for: s.kind))
                             .frame(width: max(2, width(s.start, s.end, w) - 1)) // 1 pt gap between segments
@@ -131,6 +133,15 @@ struct DayTimeline: View {
             Text(title)
         }
         .fixedSize()
+    }
+
+    private func drawOrder(_ kind: Slot.Kind) -> Int {
+        switch kind {
+        case .private: 0
+        case .restricted: 1
+        case .limited: 2
+        case .public: 3
+        }
     }
 
     private let nowColor = Color(red: 1.0, green: 0.32, blue: 0.32)

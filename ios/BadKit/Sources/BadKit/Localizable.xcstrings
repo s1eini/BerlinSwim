@@ -752,16 +752,6 @@
         }
       }
     },
-    "ab": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "from"
-          }
-        }
-      }
-    },
     "ab %@": {
       "localizations": {
         "en": {
@@ -956,6 +946,16 @@
         }
       }
     },
+    "Öffnet um %@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens at %@"
+          }
+        }
+      }
+    },
     "öffentlich": {
       "localizations": {
         "en": {
@@ -972,6 +972,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "public · fewer lanes"
+          }
+        }
+      }
+    },
+    "öffnet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "opens"
           }
         }
       }

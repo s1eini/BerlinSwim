@@ -135,8 +135,8 @@ struct PoolDetailView: View {
             Text([pool.type.map(siteTerm), pool.district].compactMap { $0 }.joined(separator: " · "))
                 .font(.subheadline).opacity(0.85)
             HStack(spacing: 6) {
-                StatusLabel(status: plan.status)
-                if let d = plan.statusDetail {
+                StatusLabel(status: plan.status, title: plan.statusParts.title)
+                if let d = plan.statusParts.detail {
                     Text("·").opacity(0.6)
                     Text(d).monospacedDigit().contentTransition(.numericText())
                 }
@@ -273,9 +273,11 @@ struct PoolDetailView: View {
 /// "✓ Offen" etc.: white text, status-colored icon.
 struct StatusLabel: View {
     let status: SwimPlan.Status
+    /// Override the text (e.g. "Öffnet um 06:00"); defaults to the status title.
+    var title: String? = nil
     var body: some View {
         Label {
-            Text(status.title)
+            Text(title ?? status.title)
         } icon: {
             Image(systemName: status.symbol).foregroundStyle(.white, status.color)
         }

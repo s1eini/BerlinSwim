@@ -111,7 +111,6 @@
         }
       }
     },
-    "Berlin": {},
     "Bäder": {
       "localizations": {
         "en": {
@@ -358,16 +357,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Live count from Berliner Bäder-Betriebe"
-          }
-        }
-      }
-    },
-    "Mein Standort": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Location"
           }
         }
       }

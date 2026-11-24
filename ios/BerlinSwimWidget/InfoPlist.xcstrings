@@ -1,23 +1,47 @@
 {
-  "sourceLanguage": "de",
-  "strings": {
-    "NSLocationWhenInUseUsageDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "So the widget can show reachable pools near you."
+  "sourceLanguage" : "de",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Berlin Swim"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BerlinSwimWidget"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit das Widget erreichbare Bäder in deiner Nähe zeigt."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Damit das Widget erreichbare Bäder in deiner Nähe zeigt."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So the widget can show reachable pools near you."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
