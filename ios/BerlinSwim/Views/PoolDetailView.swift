@@ -237,10 +237,10 @@ struct PoolDetailView: View {
                     Button {
                         RoutingService.openDirections(to: pool, mode: mode)
                     } label: {
-                        Label("\(mode.title) · \(plan.travelText)", systemImage: mode.symbol)
-                            .font(.subheadline.weight(.semibold))
+                        Label("\(plan.travelText)", systemImage: mode.symbol)
                     }
                     .buttonStyle(.glass)
+                    .controlSize(.small)
                     .padding(10)
                 }
             }
