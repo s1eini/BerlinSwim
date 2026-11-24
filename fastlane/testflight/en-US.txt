@@ -1,0 +1,1 @@
+New: the app is now called Berlin Swim, has a new icon, works in English and without location access (pools are then sorted by opening times). Please check above all whether "open until" and "opens at" match what you find at the pool.

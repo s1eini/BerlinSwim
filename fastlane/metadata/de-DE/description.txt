@@ -1,0 +1,15 @@
+Berlin Swim zeigt dir, welche Berliner Bäder gerade offen haben und ob du es mit Bahn, Rad, zu Fuß oder Auto noch rechtzeitig schaffst, dein Training zu schwimmen.
+
+Für jedes Bad siehst du:
+• wie lange es noch offen ist
+• deine Anfahrtszeit und wie viel Schwimmzeit dir bleibt
+• die Öffnungszeiten der Woche, nach Hallen und Becken getrennt
+• Hinweise der Bäder, etwa kurzfristige Schließungen oder gesperrte Becken
+• Wassertemperatur und aktuelle Auslastung
+• Ausstattung und Barrierefreiheit
+
+Die App berücksichtigt Einlass- und Badeschluss sowie deine Trainings- und Umziehzeit, um dir passende Bäder anzuzeigen.
+
+Filter für 50-m-Becken, Sauna und Barrierefreiheit, dazu eine Kartenansicht, ein Homescreen-Widget in drei Größen und die Möglichkeit, Favoriten zu speichern. Die App funktioniert auch ohne Standortfreigabe. Dann werden die Bäder einfach nach Öffnungszeiten sortiert.
+
+Inoffizielle App. Alle Angaben stammen von der Website der Berliner Bäder-Betriebe (berlinerbaeder.de), werden regelmäßig aktualisiert und sind ohne Gewähr. Kein Konto, kein Tracking, keine Werbung.

@@ -1,0 +1,15 @@
+Berlin Swim shows you which of Berlin's public pools are open right now, and whether you can still get there in time for your swim by transit, bike, on foot or by car.
+
+For every pool you see:
+• how long it stays open
+• your travel time and how much swim time you'll have left
+• the week's opening hours, split by hall and pool
+• notices from the pools, such as short-notice closures or closed pools
+• water temperature and current occupancy
+• facilities and accessibility
+
+To show you pools that actually work for you, the app takes last entry, closing time, your session length and time for changing into account.
+
+Filters for 50 m pools, sauna and accessibility, plus a map view, a home screen widget in three sizes and favourites. The app also works without location access. Pools are then simply sorted by opening times.
+
+Unofficial app. All information comes from the website of the Berliner Bäder-Betriebe (berlinerbaeder.de), is updated regularly and comes without guarantee. Pool notices are shown in German as published. No account, no tracking, no ads.
