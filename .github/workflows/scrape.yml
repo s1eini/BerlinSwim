@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["scraper/**", ".github/workflows/scrape.yml"]
+    paths: ["scraper/**", "web/**", ".github/workflows/scrape.yml"]
 
 permissions:
   contents: read
@@ -32,9 +32,8 @@ jobs:
         run: python -m unittest discover -s scraper/tests
       - name: Scrape
         run: python scraper/scrape.py --out site/pools.json
-      - name: Index page
-        run: |
-          echo '<!doctype html><meta charset="utf-8"><title>BerlinSwim data</title><a href="pools.json">pools.json</a>' > site/index.html
+      - name: Static pages (landing page, privacy policy)
+        run: cp -R web/. site/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: site
