@@ -68,6 +68,60 @@ platform :ios do
     upload_metadata(confirm: false)
   end
 
+  desc "Read-only: latest builds with processing/beta review state, and beta test information"
+  lane :beta_status do
+    app = Spaceship::ConnectAPI::App.find(CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier))
+    builds = Spaceship::ConnectAPI::Build.all(
+      app_id: app.id, sort: "-uploadedDate", limit: 5,
+      includes: "buildBetaDetail,betaAppReviewSubmission,preReleaseVersion"
+    )
+    rows = builds.first(5).map do |b|
+      [
+        "#{b.app_version} (#{b.version})",
+        b.uploaded_date.to_s[0, 16],
+        b.processing_state,
+        b.build_beta_detail&.internal_build_state,
+        b.build_beta_detail&.external_build_state,
+        b.beta_app_review_submission&.beta_review_state || "–"
+      ]
+    end
+    puts Terminal::Table.new(
+      title: "Builds", rows: rows,
+      headings: ["Version (Build)", "Uploaded", "Processing", "Internal", "External", "Beta review"]
+    )
+
+    detail = Spaceship::ConnectAPI.get_beta_app_review_detail(filter: { app: app.id }).to_models.first
+    UI.message("Beta review contact: #{[detail&.contact_first_name, detail&.contact_last_name].compact.join(' ').then { |n| n.empty? ? 'MISSING' : n }}, " \
+               "email #{detail&.contact_email || 'MISSING'}, phone #{detail&.contact_phone.to_s.empty? ? 'MISSING' : 'set'}")
+    Spaceship::ConnectAPI.get_beta_app_localizations(filter: { app: app.id }).to_models.each do |loc|
+      UI.message("Test info #{loc.locale}: description #{loc.description.to_s.empty? ? 'MISSING' : 'set'}, " \
+                 "feedback email #{loc.feedback_email || 'MISSING'}, privacy #{loc.privacy_policy_url || 'MISSING'}")
+      UI.message("  description: #{loc.description}") unless loc.description.to_s.empty?
+    end
+  end
+
+  desc "Set TestFlight test information (beta description, feedback email, privacy URL) for de-DE and en-GB"
+  lane :beta_info do
+    app = Spaceship::ConnectAPI::App.find(CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier))
+    existing = Spaceship::ConnectAPI.get_beta_app_localizations(filter: { app: app.id }).to_models
+    privacy = File.read(File.join(METADATA, "de-DE", "privacy_url.txt")).strip
+    feedback = File.read(File.join(REVIEW, "email_address.txt")).strip
+    %w[de-DE en-GB].each do |locale|
+      attrs = {
+        description: File.read(File.join(TESTFLIGHT_NOTES, "beta_description", "#{locale}.txt")).strip,
+        feedbackEmail: feedback,
+        privacyPolicyUrl: privacy
+      }
+      if (loc = existing.find { |l| l.locale == locale })
+        Spaceship::ConnectAPI.patch_beta_app_localizations(localization_id: loc.id, attributes: attrs)
+        UI.success("Updated test information #{locale}")
+      else
+        Spaceship::ConnectAPI.post_beta_app_localizations(app_id: app.id, attributes: attrs.merge(locale: locale))
+        UI.success("Created test information #{locale}")
+      end
+    end
+  end
+
   desc "Set 'What to Test' (de/en) on build #{BUILD} of #{VERSION}"
   lane :testflight_notes do
     notes = ->(lang) { File.read(File.join(TESTFLIGHT_NOTES, "#{lang}.txt")).strip }

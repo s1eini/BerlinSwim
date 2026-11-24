@@ -1,0 +1,1 @@
+Shows which of Berlin's indoor and outdoor pools are open right now and whether you can still get there in time for a proper swim. With public swimming hours, water temperature, occupancy, notices from the pools, a map and a widget. Data comes from berlinerbaeder.de. Unofficial app, no guarantee.

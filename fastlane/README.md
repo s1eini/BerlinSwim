@@ -31,6 +31,22 @@ Preview the store texts for 1.0.0, upload only after confirmation
 
 Upload store texts, URLs and categories for 1.0.0 (no binary, no screenshots, no submission)
 
+### ios beta_status
+
+```sh
+[bundle exec] fastlane ios beta_status
+```
+
+Read-only: latest builds with processing/beta review state, and beta test information
+
+### ios beta_info
+
+```sh
+[bundle exec] fastlane ios beta_info
+```
+
+Set TestFlight test information (beta description, feedback email, privacy URL) for de-DE and en-GB
+
 ### ios testflight_notes
 
 ```sh
