@@ -32,7 +32,10 @@ public enum Fmt {
     }
 
     /// "ab 16:00" today, "morgen ab 06:30", "Di ab 06:30".
-    public static func dayFrom(_ d: Date, relativeTo now: Date = .now) -> String {
+    /// "07:45–18:00 Uhr" in German, plain range in English.
+    public static func rangeUhr(_ a: Date, _ b: Date) -> String { L("\(range(a, b)) Uhr") }
+
+    public static func dayFrom(_ d: Date, relativeTo now: Date = .now, clock: (Date) -> String = Fmt.clock) -> String {
         let cal = Calendar.berlin
         if cal.isDate(d, inSameDayAs: now) { return L("ab \(clock(d))") }
         if let tomorrow = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(d, inSameDayAs: tomorrow) {
@@ -81,10 +84,11 @@ public extension SwimPlan.Status {
 public extension SwimPlan {
     /// Short value next to / under the status, e.g. "bis 21:30", "noch 45 min", "ab 16:00", "morgen ab 06:30".
     var statusDetail: String? {
-        switch status {
-        case .goNow: closingSoon ? L("noch \(Fmt.minutes(usableMinutes))") : swimEnd.map { L("bis \(Fmt.clock($0))") }
+        let clock = Fmt.clock
+        return switch status {
+        case .goNow: closingSoon ? L("noch \(Fmt.minutes(usableMinutes))") : swimEnd.map { L("bis \(clock($0))") }
         case .tight: L("nur \(Fmt.minutes(usableMinutes))")
-        case .later: window.map { L("ab \(Fmt.clock($0.start))") }
+        case .later: window.map { L("ab \(clock($0.start))") }
         case .notToday, .closed: nextWindow.map { Fmt.dayFrom($0.start, relativeTo: plannedAt) }
         }
     }
@@ -102,16 +106,29 @@ public extension SwimPlan {
         }
     }
 
-    /// Title + detail for headers: "Offen" / "bis 21:30"; opening later today reads as one phrase:
-    /// "Öffnet um 06:00" (no "Später heute · ab 06:00").
-    var statusParts: (title: String, detail: String?) {
-        if status == .later, let w = window { return (L("Öffnet um \(Fmt.clock(w.start)) Uhr"), nil) }
-        return (status.title, statusDetail)
-    }
-
-    /// "Offen · bis 21:30" – status and detail in one line.
-    var statusLine: String {
-        [statusParts.title, statusParts.detail].compactMap { $0 }.joined(separator: " · ")
+    /// The status as one natural sentence (detail header, search list), with full-sentence
+    /// translations so word order can differ per language:
+    /// "Offen bis 21:30 Uhr", "Noch 1 h 15 min geöffnet", "Geschlossen, morgen ab 06:30 Uhr" …
+    var statusSentence: String {
+        switch status {
+        case .goNow where closingSoon:
+            return L("Noch \(Fmt.minutes(usableMinutes)) geöffnet")
+        case .goNow:
+            return swimEnd.map { L("Offen bis \(Fmt.clock($0)) Uhr") } ?? status.title
+        case .tight:
+            return L("Nur noch \(Fmt.minutes(usableMinutes)) Schwimmzeit")
+        case .later:
+            return window.map { L("Öffnet um \(Fmt.clock($0.start)) Uhr") } ?? status.title
+        case .notToday, .closed:
+            guard let next = nextWindow?.start else { return L("Geschlossen") }
+            let cal = Calendar.berlin, time = Fmt.clock(next)
+            if cal.isDate(next, inSameDayAs: plannedAt) { return L("Geschlossen, ab \(time) Uhr wieder offen") }
+            if let tomorrow = cal.date(byAdding: .day, value: 1, to: plannedAt), cal.isDate(next, inSameDayAs: tomorrow) {
+                return L("Geschlossen, morgen ab \(time) Uhr")
+            }
+            let weekday = next.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.wide).locale(.autoupdatingCurrent))
+            return L("Geschlossen, \(weekday) ab \(time) Uhr")
+        }
     }
 
     /// Extra advice that isn't already in the status line (detail header only).

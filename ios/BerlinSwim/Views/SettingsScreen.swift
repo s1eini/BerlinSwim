@@ -97,7 +97,7 @@ struct SearchScreen: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(plan.pool.name).foregroundStyle(.primary)
-                            Text([plan.pool.type.map(siteTerm), plan.statusLine].compactMap { $0 }.joined(separator: " · "))
+                            Text([plan.pool.type.map(siteTerm), plan.statusSentence].compactMap { $0 }.joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()

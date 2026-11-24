@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "de",
   "strings": {
+    "%@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
     "%@ ab %@": {
       "localizations": {
         "en": {
@@ -313,6 +323,36 @@
         }
       }
     },
+    "Geschlossen, %@ ab %@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed, opens %1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "Geschlossen, ab %@ Uhr wieder offen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed, reopens at %@"
+          }
+        }
+      }
+    },
+    "Geschlossen, morgen ab %@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed, opens tomorrow at %@"
+          }
+        }
+      }
+    },
     "Große Halle": {
       "localizations": {
         "en": {
@@ -484,12 +524,42 @@
       },
       "extractionState": "manual"
     },
+    "Noch %@ geöffnet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open for another %@"
+          }
+        }
+      }
+    },
+    "Nur noch %@ Schwimmzeit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only %@ of swim time left"
+          }
+        }
+      }
+    },
     "Offen": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Open"
+          }
+        }
+      }
+    },
+    "Offen bis %@ Uhr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open until %@"
           }
         }
       }

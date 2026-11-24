@@ -37,7 +37,7 @@ struct DayTimeline: View {
                         ForEach(slots, id: \.self) { s in
                             HStack(spacing: 8) {
                                 RoundedRectangle(cornerRadius: 2).fill(color(for: s.kind)).frame(width: 10, height: 10)
-                                Text(Fmt.range(s.start, s.end)).monospacedDigit()
+                                Text(Fmt.rangeUhr(s.start, s.end)).monospacedDigit()
                                 Text(s.shortLabel).opacity(0.8).lineLimit(1)
                             }
                             .font(.footnote)
@@ -81,11 +81,16 @@ struct DayTimeline: View {
 
             // Planned swim
             GeometryReader { geo in
-                if plan.window?.areaName == area.name, let a = plan.swimStart, let b = plan.swimEnd,
-                   Calendar.berlin.isDate(a, inSameDayAs: day) {
-                    Capsule().fill(plan.status.color)
-                        .frame(width: max(4, width(a, b, geo.size.width)), height: 4)
-                        .offset(x: x(a, geo.size.width))
+                // The swim can span several halls (merged window): draw this hall's share only.
+                if let a = plan.swimStart, let b = plan.swimEnd, Calendar.berlin.isDate(a, inSameDayAs: day) {
+                    ForEach(plan.window?.parts.filter { $0.areaName == area.name } ?? [], id: \.self) { part in
+                        let from = max(a, part.start), to = min(b, part.end)
+                        if from < to {
+                            Capsule().fill(plan.status.color)
+                                .frame(width: max(4, width(from, to, geo.size.width)), height: 4)
+                                .offset(x: x(from, geo.size.width))
+                        }
+                    }
                 }
             }
             .frame(height: 4)

@@ -83,6 +83,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         #expect(plan.status == .closed)
         #expect(plan.nextWindow?.start == t(6, 30))
         #expect(plan.statusDetail == L("morgen ab \("06:30")"))
+        #expect(plan.statusSentence == L("Geschlossen, morgen ab \("06:30") Uhr"))
     }
 
     @Test func englishTranslationsResolve() {
@@ -92,6 +93,37 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         }
         #expect(String(localized: "offen bis", bundle: en) == "open until")
         #expect(String(localized: "Frauen bis \("22:30")", bundle: en) == "Women-only until 22:30")
+    }
+
+    @Test func backToBackHallsMergeIntoOneWindow() {
+        // Seestraße: air dome public until 16:00, indoor pool public from 16:00 (both 50 m)
+        var pool = makePool(slots: [Slot(start: t(6, 30), end: t(16), kind: .public)])
+        pool.areas.append(Area(name: "Traglufthalle", kind: .swim, laneLength: 50,
+                               slots: [Slot(start: t(16), end: t(22), kind: .public)]))
+        let w = planner().windows(for: pool)
+        #expect(w.count == 1)
+        #expect(w.first?.start == t(6, 30) && w.first?.end == t(22))
+        #expect(w.first?.parts.map(\.areaName) == ["Hallenbad", "Traglufthalle"])
+        let plan = planner().plan(for: pool, now: t(10), travel: 600)
+        #expect(plan.swimEnd == t(21, 30))
+    }
+
+    @Test func differentLaneLengthsDoNotMerge() {
+        var pool = makePool(slots: [Slot(start: t(6, 30), end: t(16), kind: .public)], lane: 50)
+        pool.areas.append(Area(name: "Kleine Halle", kind: .swim, laneLength: 25,
+                               slots: [Slot(start: t(16), end: t(22), kind: .public)]))
+        #expect(planner().windows(for: pool).count == 2)
+    }
+
+    @Test func statusSentences() {
+        #expect(planner().plan(for: evening, now: t(18), travel: 1200).statusSentence == L("Offen bis \("21:30") Uhr"))
+        #expect(planner().plan(for: evening, now: t(10), travel: 1200).statusSentence == L("Öffnet um \("16:00") Uhr"))
+        #expect(planner().plan(for: evening, now: t(20, 10), travel: 1200).statusSentence == L("Nur noch \("45 min") Schwimmzeit"))
+        // English table: whole sentences, own word order
+        guard let path = Bundle.module.path(forResource: "en", ofType: "lproj"), let en = Bundle(path: path) else {
+            Issue.record("no en.lproj"); return
+        }
+        #expect(String(localized: "Geschlossen, \("Thursday") ab \("06:30") Uhr", bundle: en) == "Closed, opens Thursday at 06:30")
     }
 
     @Test func goNowWithEnoughTime() {

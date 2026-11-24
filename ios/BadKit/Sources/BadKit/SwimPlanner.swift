@@ -141,12 +141,21 @@ public struct SwimPlan: Sendable, Identifiable, Hashable {
 
 /// A run of back-to-back public slots in one area.
 public struct SwimWindow: Sendable, Hashable {
+    /// Which hall covers which part of the window (several when public swimming continues in another hall).
+    public struct Part: Sendable, Hashable {
+        public var areaName: String
+        public var start: Date
+        public var end: Date
+    }
+
+    /// First hall of the window.
     public var areaName: String
     public var laneLength: Int?
     public var start: Date
     public var end: Date
     public var kinds: Set<Slot.Kind>
     public var labels: [String]
+    public var parts: [Part] = []
 
     public var isLimited: Bool { kinds.contains(.limited) }
     public var isWomenOnly: Bool { kinds.contains(.restricted) }
@@ -201,7 +210,28 @@ public struct SwimPlanner: Sendable {
             }
             if let c = current { result.append(c) }
         }
-        return result.sorted { ($0.start, $0.end) < ($1.start, $1.end) }
+        for i in result.indices {
+            result[i].parts = [.init(areaName: result[i].areaName, start: result[i].start, end: result[i].end)]
+        }
+        return mergeAcrossHalls(result.sorted { ($0.start, $0.end) < ($1.start, $1.end) })
+    }
+
+    /// Public swimming that continues seamlessly in another hall with the same lane length
+    /// (e.g. Seestraße: air dome until 16:00, indoor pool from 16:00) is one window for the swimmer.
+    private func mergeAcrossHalls(_ windows: [SwimWindow]) -> [SwimWindow] {
+        var merged: [SwimWindow] = []
+        for w in windows {
+            if var last = merged.last, w.laneLength == last.laneLength, w.start <= last.end {
+                last.end = max(last.end, w.end)
+                last.kinds.formUnion(w.kinds)
+                last.labels += w.labels
+                last.parts += w.parts
+                merged[merged.count - 1] = last
+            } else {
+                merged.append(w)
+            }
+        }
+        return merged
     }
 
     public func plan(for pool: Pool, now: Date, travel: TimeInterval, travelIsEstimate: Bool = false) -> SwimPlan {

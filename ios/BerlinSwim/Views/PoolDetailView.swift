@@ -134,14 +134,10 @@ struct PoolDetailView: View {
                 .multilineTextAlignment(.center)
             Text([pool.type.map(siteTerm), pool.district].compactMap { $0 }.joined(separator: " · "))
                 .font(.subheadline).opacity(0.85)
-            HStack(spacing: 6) {
-                StatusLabel(status: plan.status, title: plan.statusParts.title)
-                if let d = plan.statusParts.detail {
-                    Text("·").opacity(0.6)
-                    Text(d).monospacedDigit().contentTransition(.numericText())
-                }
-            }
-            .font(.title3)
+            StatusLabel(status: plan.status, title: plan.statusSentence)
+                .font(.title3)
+                .monospacedDigit()
+                .multilineTextAlignment(.center)
             .padding(.top, 8)
             if let hint = plan.hint ?? extraClosedReason {
                 Text(hint).font(.subheadline).multilineTextAlignment(.center).opacity(0.85)
@@ -191,7 +187,7 @@ struct PoolDetailView: View {
                     } else {
                         VStack(alignment: .leading, spacing: 2) {
                             ForEach(today, id: \.self) { w in
-                                Text(Fmt.range(w.start, w.end) + (w.isLimited ? " *" : ""))
+                                Text(Fmt.rangeUhr(w.start, w.end) + (w.isLimited ? " *" : ""))
                             }
                         }
                     }
