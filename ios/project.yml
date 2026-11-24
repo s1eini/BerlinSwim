@@ -41,7 +41,7 @@ targets:
     info:
       path: BerlinSwim/Info.plist
       properties:
-        CFBundleDisplayName: Baden
+        CFBundleDisplayName: Berlin Swim
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         # Only standard HTTPS – skips the export compliance question for every build.
@@ -79,7 +79,7 @@ targets:
     info:
       path: BerlinSwimWidget/Info.plist
       properties:
-        CFBundleDisplayName: Baden
+        CFBundleDisplayName: Berlin Swim
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
