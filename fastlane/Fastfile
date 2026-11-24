@@ -1,0 +1,86 @@
+# Store texts and TestFlight notes for Berlin Swim.
+#
+#   fastlane preview            – show what `metadata` would upload (HTML preview, asks before uploading)
+#   fastlane metadata           – upload texts, URLs, categories to the version in "Prepare for Submission"
+#   fastlane testflight_notes   – set "What to Test" (de/en) on the current build
+#
+# Never uploads a binary or screenshots and never submits for review.
+# API key settings come from fastlane/.env (not in git), see fastlane/.env.example.
+
+default_platform(:ios)
+
+# Absolute paths: fastlane runs actions from the repo root, so relative paths would break.
+ROOT = File.expand_path("..", __dir__)
+METADATA = File.join(ROOT, "fastlane/metadata")
+TESTFLIGHT_NOTES = File.join(ROOT, "fastlane/testflight")
+REVIEW = File.join(ROOT, "fastlane/review")
+PROJECT_YML = File.read(File.join(ROOT, "ios/project.yml"))
+VERSION = PROJECT_YML[/MARKETING_VERSION: "([^"]+)"/, 1]
+BUILD   = PROJECT_YML[/CURRENT_PROJECT_VERSION: "([^"]+)"/, 1]
+
+# App Review contact: name/email/notes from fastlane/review, phone only from fastlane/.env (not public).
+# Without ASC_REVIEW_PHONE the review contact is left untouched.
+def review_information
+  phone = ENV["ASC_REVIEW_PHONE"].to_s.strip
+  return nil if phone.empty?
+  read = ->(name) { File.read(File.join(REVIEW, name)).strip }
+  {
+    first_name: read.call("first_name.txt"),
+    last_name: read.call("last_name.txt"),
+    email_address: read.call("email_address.txt"),
+    phone_number: phone,
+    notes: read.call("notes.txt")
+  }
+end
+
+def upload_metadata(confirm:)
+  options = {
+    app_version: VERSION,
+    metadata_path: METADATA,
+    skip_binary_upload: true,
+    skip_screenshots: true,
+    submit_for_review: false,
+    automatic_release: false,
+    run_precheck_before_submit: false,
+    force: !confirm # false = show HTML preview and ask before uploading
+  }
+  info = review_information
+  options[:app_review_information] = info if info
+  deliver(**options)
+end
+
+platform :ios do
+  before_all do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH"))
+    )
+  end
+
+  desc "Preview the store texts for #{VERSION}, upload only after confirmation"
+  lane :preview do
+    upload_metadata(confirm: true)
+  end
+
+  desc "Upload store texts, URLs and categories for #{VERSION} (no binary, no screenshots, no submission)"
+  lane :metadata do
+    upload_metadata(confirm: false)
+  end
+
+  desc "Set 'What to Test' (de/en) on build #{BUILD} of #{VERSION}"
+  lane :testflight_notes do
+    notes = ->(lang) { File.read(File.join(TESTFLIGHT_NOTES, "#{lang}.txt")).strip }
+    upload_to_testflight(
+      distribute_only: true,
+      app_version: VERSION,
+      build_number: BUILD,
+      localized_build_info: {
+        "de-DE" => { whats_new: notes.call("de-DE") },
+        "en-GB" => { whats_new: notes.call("en-GB") }
+      },
+      skip_waiting_for_build_processing: true,
+      notify_external_testers: false
+    )
+  end
+end

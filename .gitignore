@@ -13,3 +13,10 @@ build/
 
 # editor swap files
 *.swp
+
+# fastlane: secrets and generated files
+fastlane/.env
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+*.p8
