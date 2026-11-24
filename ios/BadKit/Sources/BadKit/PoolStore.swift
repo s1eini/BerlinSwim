@@ -4,7 +4,7 @@ import Foundation
 public enum SharedConfig {
     public static let appGroup = "group.de.eatbl.berlinswim"
     /// Overridable in Info.plist with key `PoolsFeedURL`.
-    public static let defaultFeedURL = URL(string: "https://s1eini.github.io/BerlinSwim/pools.json")!
+    public static let defaultFeedURL = URL(string: "https://berlinswim.eatbl.de/pools.json")!
 
     public static var feedURL: URL {
         if let s = Bundle.main.object(forInfoDictionaryKey: "PoolsFeedURL") as? String,

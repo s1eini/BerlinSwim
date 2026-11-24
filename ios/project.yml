@@ -57,7 +57,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.eatbl.BerlinSwim
-        POOLS_FEED_URL: "https://s1eini.github.io/BerlinSwim/pools.json"
+        POOLS_FEED_URL: "https://berlinswim.eatbl.de/pools.json"
         # Ko-fi tip link in Settings. Set to "" to hide it (e.g. if App Review objects to external tips).
         SUPPORT_URL: "https://ko-fi.com/eatbl"
         TARGETED_DEVICE_FAMILY: "1"
@@ -93,7 +93,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.eatbl.BerlinSwim.Widget
-        POOLS_FEED_URL: "https://s1eini.github.io/BerlinSwim/pools.json"
+        POOLS_FEED_URL: "https://berlinswim.eatbl.de/pools.json"
         TARGETED_DEVICE_FAMILY: "1"
 
 schemes:
