@@ -57,7 +57,18 @@ struct PoolMapScreen: View {
         }
         .animation(.snappy, value: selection)
         // Outside the Berlin area the map must not follow the user (it would show no pools).
-        .onAppear { if !model.canRecenterOnUser { position = .region(Self.berlinRegion) } }
+        .onAppear {
+            if !model.canRecenterOnUser { position = .region(Self.berlinRegion) }
+            #if DEBUG
+            // Screenshot aid: `-mapSelect <id>` selects that pool and zooms in on it.
+            let id = UserDefaults.standard.integer(forKey: "mapSelect")
+            if id > 0, let p = model.plans.first(where: { $0.pool.id == id })?.pool, let lat = p.lat, let lon = p.lon {
+                selection = id
+                position = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: lat + 0.012, longitude: lon),
+                                                      span: MKCoordinateSpan(latitudeDelta: 0.07, longitudeDelta: 0.07)))
+            }
+            #endif
+        }
         // Standard close button in a toolbar: the OS puts it in the reserved right-hand column on the folded
         // iPhone Duo (like back/star on the detail page). Bar background hidden so the map stays full-bleed.
         .toolbar {

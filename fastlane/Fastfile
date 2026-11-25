@@ -3,8 +3,9 @@
 #   fastlane preview            – show what `metadata` would upload (HTML preview, asks before uploading)
 #   fastlane metadata           – upload texts, URLs, categories to the version in "Prepare for Submission"
 #   fastlane testflight_notes   – set "What to Test" (de/en) on the current build
+#   fastlane screenshots        – upload fastlane/screenshots/<locale>/*.png (iPhone 6.9") to the version in "Prepare for Submission"
 #
-# Never uploads a binary or screenshots and never submits for review.
+# Never uploads a binary and never submits for review.
 # API key settings come from fastlane/.env (not in git), see fastlane/.env.example.
 
 default_platform(:ios)
@@ -66,6 +67,21 @@ platform :ios do
   desc "Upload store texts, URLs and categories for #{VERSION} (no binary, no screenshots, no submission)"
   lane :metadata do
     upload_metadata(confirm: false)
+  end
+
+  desc "Upload the App Store screenshots (fastlane/screenshots/<locale>), replacing existing ones; no texts, no binary, no submission"
+  lane :screenshots do
+    deliver(
+      app_version: VERSION,
+      screenshots_path: File.join(ROOT, "fastlane/screenshots"),
+      overwrite_screenshots: true,
+      skip_metadata: true,
+      skip_binary_upload: true,
+      submit_for_review: false,
+      automatic_release: false,
+      run_precheck_before_submit: false,
+      force: true # no HTML preview; there is nothing to confirm besides the images
+    )
   end
 
   desc "Read-only: latest builds with processing/beta review state, and beta test information"

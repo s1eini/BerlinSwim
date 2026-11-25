@@ -31,6 +31,14 @@ Preview the store texts for 1.0.0, upload only after confirmation
 
 Upload store texts, URLs and categories for 1.0.0 (no binary, no screenshots, no submission)
 
+### ios screenshots
+
+```sh
+[bundle exec] fastlane ios screenshots
+```
+
+Upload the App Store screenshots (fastlane/screenshots/<locale>), replacing existing ones; no texts, no binary, no submission
+
 ### ios beta_status
 
 ```sh
