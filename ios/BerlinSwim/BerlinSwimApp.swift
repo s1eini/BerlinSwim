@@ -39,48 +39,45 @@ struct BerlinSwimApp: App {
     }
 }
 
-enum AppTab: Hashable { case pools, map, settings, search }
+enum AppSheet: String, Identifiable {
+    case map, settings, search
+    var id: String { rawValue }
+}
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @State private var tab: AppTab = {
-        #if DEBUG
-        // Screenshot aid: `-tab settings|map|search`
-        switch UserDefaults.standard.string(forKey: "tab") {
-        case "settings": return .settings
-        case "map": return .map
-        case "search": return .search
-        default: break
-        }
-        #endif
-        return .pools
-    }()
 
     var body: some View {
         @Bindable var model = model
-        TabView(selection: $tab) {
-            Tab("Bäder", systemImage: "figure.pool.swim", value: .pools) {
-                PoolListScreen()
+        PoolListScreen()
+            .sheet(item: $model.sheet) { sheet in
+                switch sheet {
+                case .map:
+                    PoolMapScreen()
+                        .presentationDetents([.large])
+                        .presentationDragIndicator(.visible)
+                case .settings:
+                    SettingsScreen()
+                        .presentationDetents([.large])
+                case .search:
+                    SearchScreen()
+                        .presentationDetents([.medium, .large])
+                }
             }
-            Tab("Karte", systemImage: "map", value: .map) {
-                PoolMapScreen()
+            .onAppear {
+                #if DEBUG
+                // Screenshot aid: `-sheet map|settings|search`
+                if let s = UserDefaults.standard.string(forKey: "sheet") { model.sheet = AppSheet(rawValue: s) }
+                #endif
             }
-            Tab("Einstellungen", systemImage: "slider.horizontal.3", value: .settings) {
-                SettingsScreen()
-            }
-            Tab(value: .search, role: .search) {
-                SearchScreen()
-            }
-        }
-        .tabBarMinimizeBehavior(.onScrollDown)
-        .onChange(of: model.openPoolID, initial: true) { openFromDeepLink() }
-        .onChange(of: model.pools.count) { openFromDeepLink() }
+            .onChange(of: model.openPoolID, initial: true) { openFromDeepLink() }
+            .onChange(of: model.pools.count) { openFromDeepLink() }
     }
 
-    /// Widget tap / deep link: switch to the pools tab and push the detail.
+    /// Widget tap / deep link / search or map selection: close any sheet and push the detail.
     private func openFromDeepLink() {
         guard let id = model.openPoolID, let pool = model.pools.first(where: { $0.id == id }) else { return }
-        tab = .pools
+        model.sheet = nil
         model.poolPath = [pool]
         model.openPoolID = nil
     }

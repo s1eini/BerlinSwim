@@ -83,7 +83,8 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         #expect(plan.status == .closed)
         #expect(plan.nextWindow?.start == t(6, 30))
         #expect(plan.statusDetail == L("morgen ab \("06:30")"))
-        #expect(plan.statusSentence == L("Geschlossen, morgen ab \("06:30") Uhr"))
+        #expect(plan.statusSentence == L("Geschlossen bis morgen \("06:30") Uhr"))
+        #expect(glueUhr("Schwimmen bis 21:30 Uhr") == "Schwimmen bis 21:30\u{00A0}Uhr") // German: no line break before "Uhr"
     }
 
     @Test func englishTranslationsResolve() {
@@ -123,7 +124,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         guard let path = Bundle.module.path(forResource: "en", ofType: "lproj"), let en = Bundle(path: path) else {
             Issue.record("no en.lproj"); return
         }
-        #expect(String(localized: "Geschlossen, \("Thursday") ab \("06:30") Uhr", bundle: en) == "Closed, opens Thursday at 06:30")
+        #expect(String(localized: "Geschlossen bis \("Thursday") \("06:30") Uhr", bundle: en) == "Closed until Thursday 06:30")
     }
 
     @Test func withoutLocationTravelIsIgnoredAndSortedByOpeningTime() {

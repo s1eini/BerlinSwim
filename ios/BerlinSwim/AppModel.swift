@@ -27,6 +27,8 @@ final class AppModel {
     var openPoolID: Int?
     /// Navigation path of the "Bäder" tab (deep links push here).
     var poolPath: [Pool] = []
+    /// Currently presented sheet (map / settings / search), opened from `BottomBar`.
+    var sheet: AppSheet?
 
     var preferences: SwimPreferences {
         didSet {

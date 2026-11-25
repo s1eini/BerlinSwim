@@ -378,32 +378,32 @@
         }
       }
     },
-    "Geschlossen, %@ ab %@ Uhr": {
+    "Geschlossen bis %@ %@ Uhr": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Closed, opens %1$@ at %2$@"
+            "value": "Closed until %1$@ %2$@"
           }
         }
       }
     },
-    "Geschlossen, ab %@ Uhr wieder offen": {
+    "Geschlossen bis %@ Uhr": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Closed, reopens at %@"
+            "value": "Closed until %@"
           }
         }
       }
     },
-    "Geschlossen, morgen ab %@ Uhr": {
+    "Geschlossen bis morgen %@ Uhr": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Closed, opens tomorrow at %@"
+            "value": "Closed until tomorrow %@"
           }
         }
       }

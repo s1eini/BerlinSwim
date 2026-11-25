@@ -4,14 +4,17 @@ import SwiftUI
 
 struct PoolMapScreen: View {
     @Environment(AppModel.self) private var model
-    @State private var position: MapCameraPosition = .userLocation(fallback: .region(MKCoordinateRegion(
+    private static let berlinRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 52.505, longitude: 13.40),
-        span: MKCoordinateSpan(latitudeDelta: 0.32, longitudeDelta: 0.42))))
+        span: MKCoordinateSpan(latitudeDelta: 0.32, longitudeDelta: 0.42))
+    private static let userOrBerlin: MapCameraPosition = .userLocation(fallback: .region(berlinRegion))
+    @State private var position: MapCameraPosition = Self.userOrBerlin
     @State private var selection: Int?
+    @Namespace private var mapScope
 
     var body: some View {
         NavigationStack {
-        Map(position: $position, selection: $selection) {
+        Map(position: $position, selection: $selection, scope: mapScope) {
             UserAnnotation()
             ForEach(model.plans.reversed()) { plan in
                 if let lat = plan.pool.lat, let lon = plan.pool.lon {
@@ -25,30 +28,47 @@ struct PoolMapScreen: View {
         }
         .mapStyle(.standard(pointsOfInterest: .excludingAll))
         .mapControls {
-            MapUserLocationButton()
             MapCompass()
             MapScaleView()
         }
-        .safeAreaInset(edge: .top) {
-            FilterBar().padding(.horizontal, 12)
-        }
-        .safeAreaInset(edge: .bottom) {
-            if let id = selection, let plan = model.plans.first(where: { $0.pool.id == id }) {
-                NavigationLink(value: plan.pool) {
-                    PoolCard(plan: plan)
-                        .fixedSize(horizontal: false, vertical: true)
+        // Overlay, not safeAreaInset: an inset would push MapKit's logo and legal link up from the bottom edge.
+        .overlay(alignment: .bottom) {
+            VStack(spacing: 8) {
+                // Standard MapKit recenter button, at the bottom (above the pool card when one is selected).
+                if model.canRecenterOnUser { // no location, or far from Berlin (e.g. Munich): it would not help
+                    MapUserLocationButton(scope: mapScope)
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.circle)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 12)
-                .padding(.bottom, 8)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                if let id = selection, let plan = model.plans.first(where: { $0.pool.id == id }) {
+                    Button {
+                        model.openPoolID = plan.pool.id // closes the sheet, opens the detail on the list
+                    } label: {
+                        PoolCard(plan: plan)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 8)
         }
         .animation(.snappy, value: selection)
-        .toolbar(.hidden, for: .navigationBar)
-        .navigationDestination(for: Pool.self) { pool in
-            PoolPager(plans: [model.plan(for: pool)], selected: pool)
+        // Outside the Berlin area the map must not follow the user (it would show no pools).
+        .onAppear { if !model.canRecenterOnUser { position = .region(Self.berlinRegion) } }
+        // Standard close button in a toolbar: the OS puts it in the reserved right-hand column on the folded
+        // iPhone Duo (like back/star on the detail page). Bar background hidden so the map stays full-bleed.
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { FilterMenu() }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(role: .close) { model.sheet = nil }
+            }
         }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .mapScope(mapScope)
         }
     }
 }

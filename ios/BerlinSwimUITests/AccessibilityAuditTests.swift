@@ -57,15 +57,47 @@ final class AccessibilityAuditTests: XCTestCase {
 
     func testSettings() throws {
         let app = launch()
-        app.tabBars.buttons["Einstellungen"].tap()
+        app.buttons["Einstellungen"].tap()
         XCTAssertTrue(app.navigationBars["Einstellungen"].waitForExistence(timeout: 10))
         try audit(app)
     }
 
     func testMap() throws {
         let app = launch()
-        app.tabBars.buttons["Karte"].tap()
+        app.buttons["Karte"].tap()
         sleep(2)
         try audit(app)
+    }
+
+    func testMapFilterMenu() throws {
+        let app = launch()
+        app.buttons["Karte"].tap()
+        let filter = app.buttons["Filter"]
+        XCTAssertTrue(filter.waitForExistence(timeout: 10))
+        XCTAssertNotEqual(filter.value as? String, "aktiv")
+        filter.tap()
+        sleep(2) // let the menu finish its opening animation before reading frames
+        saveScreenshot("filter-menu-open")
+        // The menu's items are not reliably addressable through the accessibility tree while it animates, so tap
+        // by position (iPhone 17 layout: Sauna and Nicht voll rows of the open menu).
+        func tapMenuRow(y: Double) { app.coordinate(withNormalizedOffset: CGVector(dx: 0.42, dy: y)).tap() }
+        tapMenuRow(y: 0.357) // Sauna
+        sleep(1)
+        saveScreenshot("filter-menu-after-sauna")
+        tapMenuRow(y: 0.4534) // Nicht voll: the menu stays open so several filters can be changed in one go
+        sleep(1)
+        saveScreenshot("filter-menu-after-nichtvoll")
+        // Dismiss the menu by tapping the map below it; the "…" button now reports an active filter.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)).tap()
+        let filterAfter = app.buttons["Filter"]
+        XCTAssertTrue(filterAfter.waitForExistence(timeout: 5))
+        XCTAssertEqual(filterAfter.value as? String, "aktiv")
+        saveScreenshot("filter-badge")
+    }
+
+    /// Optional (env `SCREENSHOT_DIR`): save a screenshot for a visual check.
+    private func saveScreenshot(_ name: String) {
+        guard let dir = ProcessInfo.processInfo.environment["SCREENSHOT_DIR"] else { return }
+        try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
     }
 }

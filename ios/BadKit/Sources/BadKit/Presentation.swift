@@ -125,7 +125,7 @@ public extension SwimPlan {
 
     /// The status as one natural sentence (detail header, search list), with full-sentence
     /// translations so word order can differ per language:
-    /// "Offen bis 21:30 Uhr", "Noch 1 h 15 min geöffnet", "Geschlossen, morgen ab 06:30 Uhr" …
+    /// "Offen bis 21:30 Uhr", "Noch 1 h 15 min geöffnet", "Geschlossen bis morgen 06:30 Uhr" …
     var statusSentence: String {
         switch status {
         case .goNow where closingSoon:
@@ -139,12 +139,12 @@ public extension SwimPlan {
         case .notToday, .closed:
             guard let next = nextWindow?.start else { return L("Geschlossen") }
             let cal = Calendar.berlin, time = Fmt.clock(next)
-            if cal.isDate(next, inSameDayAs: plannedAt) { return L("Geschlossen, ab \(time) Uhr wieder offen") }
+            if cal.isDate(next, inSameDayAs: plannedAt) { return L("Geschlossen bis \(time) Uhr") }
             if let tomorrow = cal.date(byAdding: .day, value: 1, to: plannedAt), cal.isDate(next, inSameDayAs: tomorrow) {
-                return L("Geschlossen, morgen ab \(time) Uhr")
+                return L("Geschlossen bis morgen \(time) Uhr")
             }
             let weekday = next.formatted(Date.FormatStyle(timeZone: cal.timeZone).weekday(.wide).locale(.autoupdatingCurrent))
-            return L("Geschlossen, \(weekday) ab \(time) Uhr")
+            return L("Geschlossen bis \(weekday) \(time) Uhr")
         }
     }
 

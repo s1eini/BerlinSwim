@@ -50,9 +50,25 @@ struct PoolListScreen: View {
                 .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.hidden)
+            .scrollEdgeEffectStyle(.soft, for: .bottom) // content fades out under the bottom bar
             .background(WaterBackground(status: model.plans.first?.status, date: model.now).ignoresSafeArea())
             .refreshable { await model.refresh(force: true) }
             .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                // System bottom toolbar: standard icon size, glass grouping, and the OS relocates it on
+                // size classes / reserved regions (iPhone Duo, iPad).
+                ToolbarItem(placement: .bottomBar) {
+                    Button { model.sheet = .settings } label: { Image(systemName: "gearshape") }
+                        .accessibilityLabel("Einstellungen")
+                }
+                ToolbarSpacer(.flexible, placement: .bottomBar)
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button { model.sheet = .map } label: { Image(systemName: "map") }
+                        .accessibilityLabel("Karte")
+                    Button { model.sheet = .search } label: { Image(systemName: "magnifyingglass") }
+                        .accessibilityLabel("Suche")
+                }
+            }
             .navigationDestination(for: Pool.self) { pool in
                 PoolPager(plans: model.plans.contains { $0.pool.id == pool.id } ? model.plans : [model.plan(for: pool)],
                           selected: pool)
