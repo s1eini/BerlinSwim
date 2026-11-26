@@ -152,7 +152,7 @@ struct SwimWidgetView: View {
         switch family {
         case .systemSmall: small
         case .systemMedium: list(limit: 3)
-        case .systemLarge: list(limit: 5)
+        case .systemLarge: largeList
         default: small
         }
     }
@@ -225,21 +225,59 @@ struct SwimWidgetView: View {
         }
     }
 
-    private func list(limit: Int) -> some View {
-        VStack(alignment: .leading, spacing: family == .systemLarge ? 8 : 5) {
-            HStack {
-                HStack(spacing: 4) {
-                    Image(systemName: "figure.pool.swim")
-                    Text(headerText).lineLimit(1).minimumScaleFactor(0.8)
-                }
-                .font(.caption.weight(.semibold))
+    /// As many rows as fit the widget's height (it differs per device), spread evenly so no empty band is left.
+    /// ViewThatFits takes the first candidate whose minimum height fits; its spacers then share the free space.
+    private var largeList: some View {
+        ViewThatFits(in: .vertical) {
+            spreadList(limit: 7)
+            spreadList(limit: 6)
+            spreadList(limit: 5)
+            spreadList(limit: 4)
+            spreadList(limit: 3)
+        }
+    }
+
+    private func spreadList(limit: Int) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            listHeader
+            if top.isEmpty {
                 Spacer()
-                Button(intent: RefreshIntent()) {
-                    Image(systemName: "arrow.clockwise").font(.caption)
+                empty
+                Spacer()
+            } else {
+                ForEach(top.prefix(limit)) { plan in
+                    Spacer(minLength: 8).frame(maxHeight: 30)
+                    Link(destination: url(plan)) { row(plan) }
                 }
-                .buttonStyle(.plain)
+                Spacer(minLength: 8)
             }
-            .opacity(0.9)
+            if let d = entry.dataDate {
+                Text("Quelle: berlinerbaeder.de · Stand \(Fmt.weekdayClock(d, relativeTo: entry.date))")
+                    .font(.caption2).opacity(0.6)
+            }
+        }
+        .foregroundStyle(.white)
+    }
+
+    private var listHeader: some View {
+        HStack {
+            HStack(spacing: 4) {
+                Image(systemName: "figure.pool.swim")
+                Text(headerText).lineLimit(1).minimumScaleFactor(0.8)
+            }
+            .font(.caption.weight(.semibold))
+            Spacer()
+            Button(intent: RefreshIntent()) {
+                Image(systemName: "arrow.clockwise").font(.caption)
+            }
+            .buttonStyle(.plain)
+        }
+        .opacity(0.9)
+    }
+
+    private func list(limit: Int) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            listHeader
             if top.isEmpty {
                 Spacer()
                 empty
@@ -249,10 +287,6 @@ struct SwimWidgetView: View {
                     Link(destination: url(plan)) { row(plan) }
                 }
                 Spacer(minLength: 0)
-            }
-            if family == .systemLarge, let d = entry.dataDate {
-                Text("Stand \(Fmt.weekdayClock(d, relativeTo: entry.date)) · berlinerbaeder.de")
-                    .font(.caption2).opacity(0.6)
             }
         }
         .foregroundStyle(.white)

@@ -121,12 +121,12 @@
         }
       }
     },
-    "Stand %@ · berlinerbaeder.de": {
+    "Quelle: berlinerbaeder.de · Stand %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Updated %@ · berlinerbaeder.de"
+            "value": "Source: berlinerbaeder.de · Updated %@"
           }
         }
       }
