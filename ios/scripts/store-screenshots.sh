@@ -43,7 +43,6 @@ for pair in de-DE:de en-GB:en; do
     u=${dev%%:*}; pre=${dev#*:}
     shot $u $loc $lang ${pre}1_list
     shot $u $loc $lang ${pre}2_detail -openPool $POOL
-    shot $u $loc $lang ${pre}3_prices -openPool $POOL -detailScroll prices
     shot $u $loc $lang ${pre}4_map -sheet map -mapSelect $POOL
   done
 done
