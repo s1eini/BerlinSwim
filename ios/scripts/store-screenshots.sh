@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Takes the App Store screenshots in German and English into fastlane/screenshots/<locale>/:
 # iPhone 17 Pro Max (6.9", 1_…4_), iPad Pro 13" (ipad_1_…ipad_4_) and the folded iPhone Duo (duo_1_…duo_4_, outer display).
+# 3_widget.png (home screen with the large widget) is taken by hand: place the widget in the iPhone simulator, bring its page to the front, `simctl io … screenshot`; once per language (the widget follows the system language).
 # The unfolded Duo (inner display) is black while the simulator is folded: unfold it by hand, then run
 #   DUO_INNER=1 ios/scripts/store-screenshots.sh     → only the Duo, display 3, files duoinner_1_…duoinner_4_
 # Needs a debug build of the app in DerivedData (xcodebuild -scheme BerlinSwim -destination 'id=<udid>' build).
