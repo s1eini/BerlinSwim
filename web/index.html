@@ -30,6 +30,14 @@
     h1 { margin-bottom: .25rem; }
     p.lead { margin-top: 0; opacity: .75; }
     a { color: #1B74DB; }
+    .shots { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; margin: 2rem -1.25rem 0;
+             padding: 0 1.25rem .5rem; }
+    .shots img { flex: none; width: 200px; height: auto; border-radius: 22px; scroll-snap-align: center;
+                 box-shadow: 0 2px 12px rgba(0,0,0,.25); }
+    @media (min-width: 50rem) {
+      .shots { overflow: visible; justify-content: center; margin: 2rem calc(50% - 50vw + 1.25rem) 0; }
+      .shots img { width: 240px; }
+    }
     footer { margin-top: 3rem; font-size: .9rem; opacity: .7; }
   </style>
 </head>
@@ -39,10 +47,14 @@
   <p class="lead">Welches Bad ist jetzt geöffnet? · Which Berlin pool is open now?</p>
   <p>Inoffizielle iPhone-App mit Widget: Zeigt dir welche Berliner Bäder jetzt offen sind und ob du es noch rechtzeitig fürs Training dorthin schaffst. Daten von berlinerbaeder.de, ohne Gewähr.</p>
   <p>Unofficial iPhone app and widget showing which Berlin public pools are open right now and whether you can still make it for a proper swim.</p>
+  <div class="shots">
+    <img src="img/liste.webp" width="440" height="956" loading="lazy" alt="Liste der Berliner Bäder mit Filtern; zu jedem Bad steht, bis wann du noch schwimmen kannst und wie lange die Anreise dauert">
+    <img src="img/detail.webp" width="440" height="956" loading="lazy" alt="Detailseite des Stadtbads Neukölln mit Tagesplan der Becken und Sauna">
+    <img src="img/widget.webp" width="440" height="956" loading="lazy" alt="Großes Widget auf dem Home-Screen mit den fünf nächsten erreichbaren Bädern">
+  </div>
   <ul>
     <li><a href="datenschutz.html">Datenschutz / Privacy</a></li>
     <li><a href="https://ko-fi.com/eatbl">Kaffee spendieren (Ko-fi)</a></li>
-    <li><a href="pools.json">Daten (pools.json)</a></li>
   </ul>
   <footer>Kontakt / Support: <a href="mailto:berlinswim@eatbl.de">berlinswim@eatbl.de</a><br>
   Kein Angebot der Berliner Bäder-Betriebe.</footer>
