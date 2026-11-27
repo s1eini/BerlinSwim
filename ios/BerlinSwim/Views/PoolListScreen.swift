@@ -81,13 +81,13 @@ struct PoolListScreen: View {
             Text("Schwimmen gehen?")
                 .font(.largeTitle.bold()) // scales with Dynamic Type
             if model.travelKnown {
-                Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · \(model.preferences.travelMode.arrivalText)")
-                    .font(.subheadline).opacity(0.85)
+                TrainingPickers().padding(.top, 16)
             } else {
-                Text("\(Fmt.minutes(model.preferences.trainingMinutes)) Training · ohne Anreisezeit")
-                    .font(.subheadline).opacity(0.85)
-                Text("Standort aus – Bäder nach Öffnungszeit sortiert")
-                    .font(.caption).opacity(0.9).padding(.top, 4)
+                // No usable position: swim length / travel are hidden, a short note explains why.
+                Text(model.tooFarFromBerlin ? "Du bist nicht in Berlin. Bäder nach Öffnungszeit sortiert."
+                     : model.locationPending ? "Standort wird ermittelt. Bäder vorerst nach Öffnungszeit sortiert."
+                     : "Standort nicht geteilt. Bäder nach Öffnungszeit sortiert.")
+                    .font(.caption).opacity(0.9).padding(.top, 8)
                 if model.locationDenied {
                     Button("Standort freigeben") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
@@ -304,28 +304,12 @@ struct FilterBar: View {
         ScrollView(.horizontal) {
             GlassEffectContainer(spacing: 8) {
                 HStack(spacing: 8) {
-                    if model.travelKnown { // travel mode is meaningless without a location
-                        Menu {
-                            Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
-                                ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
-                            }
-                        } label: {
-                            pickerChip(model.preferences.travelMode.title, model.preferences.travelMode.symbol)
-                        }
-                    }
-                    Menu {
-                        Picker("Training", selection: $model.preferences.trainingMinutes) {
-                            ForEach([30, 45, 60, 75, 90, 120], id: \.self) { Text(Fmt.minutes($0)).tag($0) }
-                        }
-                    } label: {
-                        pickerChip(Fmt.minutes(model.preferences.trainingMinutes), "timer")
-                    }
                     // 50 m = lane-length minimum (same setting the planner uses per pool area)
                     Button {
                         withAnimation(.snappy) {
                             model.preferences.minLaneLength = model.preferences.minLaneLength == 50 ? nil : 50
                         }
-                    } label: { chip("50 m", "figure.pool.swim", active: model.preferences.minLaneLength == 50) }
+                    } label: { chip("50 m", "ruler.fill", active: model.preferences.minLaneLength == 50) }
                     .buttonStyle(.plain)
                     ForEach(quick) { f in
                         let on = model.preferences.requiredFeatures.contains(f)
@@ -337,13 +321,10 @@ struct FilterBar: View {
                         } label: { chip(f.title, f.symbol, active: on) }
                         .buttonStyle(.plain)
                     }
-                    Button {
-                        withAnimation(.snappy) { model.preferences.avoidCrowded.toggle() }
-                    } label: { chip(String(localized: "Nicht voll"), "person.2.slash", active: model.preferences.avoidCrowded) }
-                    .buttonStyle(.plain)
                 }
             }
             .padding(.vertical, 4)
+            .containerRelativeFrame(.horizontal, alignment: .center) // centred while it fits, scrolls otherwise
         }
         .scrollIndicators(.hidden)
         .scrollClipDisabled()
@@ -352,26 +333,78 @@ struct FilterBar: View {
     /// Toggle chip: active = solid white with checkmark, inactive = clear glass.
     private func chip(_ title: String, _ symbol: String, active: Bool) -> some View {
         Label(title, systemImage: active ? "checkmark" : symbol)
-            .font(.subheadline.weight(active ? .semibold : .medium))
+            .font(.footnote.weight(active ? .semibold : .medium)) // secondary: smaller than the two main dropdowns
             .foregroundStyle(active ? Color(red: 0.05, green: 0.40, blue: 0.75) : .white)
-            .padding(.horizontal, 12).padding(.vertical, 8)
+            .padding(.horizontal, 10).padding(.vertical, 6)
             .background(active ? AnyShapeStyle(.white) : AnyShapeStyle(.clear), in: .capsule)
-            .glassEffect(.clear.interactive(), in: .capsule)
+            .glassEffect(active ? .clear.interactive() : .regular.interactive(), in: .capsule) // off: milky, unlike the clear dropdowns above
             .accessibilityAddTraits(active ? .isSelected : [])
             .padding(.vertical, 4).contentShape(.rect) // ≥ 44 pt tap target without changing the look
     }
+}
 
-    /// Picker chip (travel mode, duration): glass with a chevron.
-    private func pickerChip(_ title: String, _ symbol: String) -> some View {
+/// Training duration and travel mode as two centred dropdowns right under the title.
+struct TrainingPickers: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        GlassEffectContainer(spacing: 8) {
+            ViewThatFits(in: .horizontal) { // side by side if it fits, else stacked
+                HStack(spacing: 10) { duration; travel }
+                    .frame(maxWidth: 360) // both chips share the width equally
+                VStack(spacing: 8) { duration; travel }
+                    .frame(maxWidth: 240)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var duration: some View {
+        Menu {
+            Picker("Schwimmdauer", selection: model.trainingBinding) {
+                Text("Beliebig").tag(Int?.none)
+                ForEach(AppModel.trainingOptions, id: \.self) { Text(Fmt.minutes($0)).tag(Int?.some($0)) }
+            }
+        } label: {
+            pickerChip(model.preferences.trainingSet ? Fmt.minutes(model.preferences.trainingMinutes) : String(localized: "Schwimmdauer"),
+                       model.preferences.trainingSet ? "figure.pool.swim" : nil, active: model.preferences.trainingSet)
+        }
+        .accessibilityLabel("Schwimmdauer")
+        .accessibilityValue(model.preferences.trainingSet ? Fmt.minutes(model.preferences.trainingMinutes) : String(localized: "Beliebig"))
+    }
+
+    @ViewBuilder private var travel: some View {
+        if model.travelKnown { // travel mode is meaningless without a location
+            Menu {
+                Picker("Anreise", selection: model.travelBinding) {
+                    Text("Beliebig").tag(TravelMode?.none)
+                    ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag(TravelMode?.some($0)) }
+                }
+            } label: {
+                pickerChip(model.preferences.travelSet ? model.preferences.travelMode.title : String(localized: "Anreise"),
+                           model.preferences.travelSet ? model.preferences.travelMode.symbol : nil,
+                           active: model.preferences.travelSet)
+            }
+            .accessibilityLabel("Anreise")
+            .accessibilityValue(model.preferences.travelSet ? model.preferences.travelMode.title : String(localized: "Beliebig"))
+        }
+    }
+
+    /// Not chosen: clear glass with just the heading (like an unset filter). Chosen: solid white with the value.
+    private func pickerChip(_ title: String, _ symbol: String?, active: Bool) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: symbol)
+            if let symbol { Image(systemName: symbol) }
             Text(title)
             Image(systemName: "chevron.down").font(.caption2.weight(.bold)).opacity(0.8)
         }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity).frame(height: 24) // fixed: a taller symbol (tram) must not enlarge the chip
+        .imageScale(.small)
+        .font(.subheadline.weight(active ? .semibold : .medium))
+        .foregroundStyle(active ? Color(red: 0.05, green: 0.40, blue: 0.75) : .white)
         .padding(.horizontal, 12).padding(.vertical, 8)
-        .glassEffect(.regular.tint(.black.opacity(0.12)).interactive(), in: .capsule)
+        .background(active ? AnyShapeStyle(.white) : AnyShapeStyle(.clear), in: .capsule)
+        .glassEffect(.clear.interactive(), in: .capsule)
+        .accessibilityAddTraits(active ? .isSelected : [])
     }
 }
 

@@ -8,9 +8,15 @@ struct PoolMapScreen: View {
         center: CLLocationCoordinate2D(latitude: 52.505, longitude: 13.40),
         span: MKCoordinateSpan(latitudeDelta: 0.32, longitudeDelta: 0.42))
     private static let userOrBerlin: MapCameraPosition = .userLocation(fallback: .region(berlinRegion))
-    @State private var position: MapCameraPosition = Self.userOrBerlin
+    // Starts on Berlin; only follows the user when they are in the Berlin area (see `showUserOrBerlin`).
+    @State private var position: MapCameraPosition = .region(berlinRegion)
     @State private var selection: Int?
     @Namespace private var mapScope
+
+    /// In the Berlin area follow the user, otherwise (no location, London, Munich …) show Berlin.
+    private func showUserOrBerlin() {
+        position = model.canRecenterOnUser ? Self.userOrBerlin : .region(Self.berlinRegion)
+    }
 
     var body: some View {
         NavigationStack {
@@ -57,8 +63,9 @@ struct PoolMapScreen: View {
         }
         .animation(.snappy, value: selection)
         // Outside the Berlin area the map must not follow the user (it would show no pools).
+        .onChange(of: model.canRecenterOnUser) { showUserOrBerlin() } // location arrives / changes while open
         .onAppear {
-            if !model.canRecenterOnUser { position = .region(Self.berlinRegion) }
+            showUserOrBerlin()
             #if DEBUG
             // Screenshot aid: `-mapSelect <id>` selects that pool and zooms in on it.
             let id = UserDefaults.standard.integer(forKey: "mapSelect")

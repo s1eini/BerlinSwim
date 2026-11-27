@@ -12,7 +12,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     # App + widget version. Raise CURRENT_PROJECT_VERSION for every TestFlight upload.
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "5"
+    CURRENT_PROJECT_VERSION: "6"
     # Set your team here (or in Xcode → Signing) for device builds:
     DEVELOPMENT_TEAM: 55SQ97YG8M
     CODE_SIGN_STYLE: Automatic

@@ -131,22 +131,22 @@
         }
       }
     },
-    "Training (min)": {
+    "Schwimmdauer (min)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session (min)"
+            "value": "Swim length (min)"
           }
         }
       }
     },
-    "Verkehrsmittel": {
+    "Anreise": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Travel mode"
+            "value": "Travel"
           }
         }
       }

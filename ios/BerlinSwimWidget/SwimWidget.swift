@@ -9,7 +9,7 @@ import WidgetKit
 enum WidgetTravelMode: String, AppEnum {
     case app, walking, cycling, transit, driving
 
-    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Verkehrsmittel"
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Anreise"
     static let caseDisplayRepresentations: [WidgetTravelMode: DisplayRepresentation] = [
         .app: "Wie in der App",
         .walking: "Zu Fuß",
@@ -25,10 +25,10 @@ struct SwimWidgetIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "Schwimmen gehen"
     static let description = IntentDescription("Welche Bäder du jetzt noch erreichst – mit genug Zeit fürs Training.")
 
-    @Parameter(title: "Verkehrsmittel", default: .app)
+    @Parameter(title: "Anreise", default: .app)
     var travelMode: WidgetTravelMode
 
-    @Parameter(title: "Training (min)", description: "Leer = wie in der App", inclusiveRange: (15, 240))
+    @Parameter(title: "Schwimmdauer (min)", description: "Leer = wie in der App", inclusiveRange: (15, 240))
     var trainingMinutes: Int?
 
     @Parameter(title: "Nur 50-m-Becken", default: false)
@@ -79,6 +79,9 @@ struct SwimProvider: AppIntentTimelineProvider {
         var feed = try? await PoolStore.shared.refresh(maxAge: 25 * 60)
         if feed == nil { feed = await PoolStore.shared.cached() }
         var prefs = SharedState.loadPreferences()
+        // The widget always plans with a training length and travel mode (its own settings or the app's values).
+        prefs.travelSet = true
+        prefs.trainingSet = true
         if let m = config.travelMode.mode { prefs.travelMode = m }
         if let t = config.trainingMinutes { prefs.trainingMinutes = t }
         if config.only50m { prefs.minLaneLength = 50 }

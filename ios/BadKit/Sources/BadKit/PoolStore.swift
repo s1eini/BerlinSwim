@@ -137,6 +137,8 @@ public enum Geo {
 
     /// Berlin Alexanderplatz – default when no location is available.
     public static let berlinCenter = (lat: 52.5219, lon: 13.4132)
+    /// Radius around the centre in which travel times make sense (covers Potsdam, Oranienburg, Königs Wusterhausen).
+    public static let berlinAreaMeters = 60_000.0
 }
 
 /// Travel time lookup combining routed ETAs (if fresh & from nearby origin) with straight-line estimates.

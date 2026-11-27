@@ -35,7 +35,7 @@ final class AppModel {
             guard preferences != oldValue else { return }
             guard fixedNow == nil else { recompute(); return } // preview: don't persist or route
             SharedState.save(preferences)
-            if preferences.travelMode != oldValue.travelMode { Task { await updateRoutes() } }
+            if preferences.travelMode != oldValue.travelMode || preferences.travelSet != oldValue.travelSet { Task { await updateRoutes() } }
             recompute()
             WidgetCenter.shared.reloadAllTimelines()
         }
@@ -58,9 +58,37 @@ final class AppModel {
 
     /// Travel times only make sense with a real position: live location, or a stored one
     /// as long as access isn't denied. Otherwise the app works on opening times only.
+    /// Also requires being in the Berlin area (incl. Potsdam & co.): travel times from Munich are pointless.
     var travelKnown: Bool {
         if let previewOrigin { return previewOrigin != nil }
-        return !locationDenied && (location != nil || SharedState.lastLocation() != nil)
+        guard !locationDenied, location != nil || SharedState.lastLocation() != nil else { return false }
+        return nearBerlin
+    }
+
+    /// No position yet (first start, still searching) and access not denied.
+    var locationPending: Bool {
+        !locationDenied && location == nil && SharedState.lastLocation() == nil && previewOrigin == nil
+    }
+
+    /// Location is known but too far from Berlin for travel times.
+    var tooFarFromBerlin: Bool {
+        !locationDenied && (location != nil || SharedState.lastLocation() != nil) && !nearBerlin
+    }
+
+    /// Preferences as the planner sees them: without usable travel (no location / too far away) the swim length
+    /// and travel choices are hidden in the UI, so they must not filter invisibly.
+    var effectivePreferences: SwimPreferences {
+        var p = preferences
+        if !travelKnown { p.trainingSet = false; p.travelSet = false }
+        return p
+    }
+
+    /// Within `Geo.berlinAreaMeters` of the city centre.
+    var nearBerlin: Bool {
+        let o = origin
+        let c = Geo.berlinCenter
+        return CLLocation(latitude: o.lat, longitude: o.lon)
+            .distance(from: CLLocation(latitude: c.lat, longitude: c.lon)) < Geo.berlinAreaMeters
     }
 
     var origin: (lat: Double, lon: Double) {
@@ -77,7 +105,7 @@ final class AppModel {
     func plan(for pool: Pool) -> SwimPlan {
         plans.first { $0.pool.id == pool.id }
             ?? allPlans.first { $0.pool.id == pool.id }
-            ?? SwimPlanner(preferences: preferences).plans(for: [pool], now: now, travelKnown: travelKnown) {
+            ?? SwimPlanner(preferences: effectivePreferences).plans(for: [pool], now: now, travelKnown: travelKnown) {
                 travelTable.travel(to: $0)
             }.first
             ?? SwimPlanner(preferences: preferences).plan(for: pool, now: now, travel: 0)
@@ -144,10 +172,10 @@ final class AppModel {
         now = fixedNow ?? Date()
         let table = travelTable
         let known = travelKnown
-        plans = SwimPlanner(preferences: preferences).plans(for: pools, now: now, occupancy: occupancy, travelKnown: known) {
+        plans = SwimPlanner(preferences: effectivePreferences).plans(for: pools, now: now, occupancy: occupancy, travelKnown: known) {
             table.travel(to: $0)
         }
-        var unfiltered = preferences
+        var unfiltered = effectivePreferences
         unfiltered.requiredFeatures = []
         unfiltered.avoidCrowded = false
         unfiltered.minLaneLength = nil
@@ -186,7 +214,7 @@ final class AppModel {
     // MARK: - Routing (MapKit ETA for the most relevant pools)
 
     private func updateRoutes() async {
-        guard let origin = location else { return }
+        guard let origin = location, preferences.travelSet else { return }
         let mode = preferences.travelMode
         let table = TravelTimeTable(origin: (origin.coordinate.latitude, origin.coordinate.longitude), mode: mode)
         let planner = SwimPlanner(preferences: preferences)

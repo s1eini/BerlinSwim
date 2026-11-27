@@ -7,16 +7,6 @@
     "–" : {
 
     },
-    "„Nur 50-m-Becken“ ist derselbe Filter wie der 50-m-Chip auf der Startseite. Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison. „Nur ungeteilte Wasserfläche“ blendet Zeiten aus, in denen Bahnen an Vereine vergeben sind." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“50 m pools only” is the same filter as the 50 m chip on the home screen. “Hide times with club lanes” skips sessions where some lanes are reserved for clubs. Pools closed for the season are e.g. outdoor pools in winter."
-          }
-        }
-      }
-    },
     "* zeitweise eingeschränkte Wasserfläche · Einlass bis %lld min, Badeschluss %lld min vor Ende" : {
       "localizations" : {
         "en" : {
@@ -31,6 +21,7 @@
 
     },
     "%@ Training · %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -41,6 +32,7 @@
       }
     },
     "%@ Training · ohne Anreisezeit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -52,6 +44,17 @@
     },
     "50 m" : {
 
+    },
+    "50-m-Becken, Sauna und Barrierefrei gibt es auch als Chips auf der Startseite." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "50 m pool, sauna and accessible are also chips on the home screen."
+          }
+        }
+      }
     },
     "aktiv" : {
       "localizations" : {
@@ -184,6 +187,16 @@
         }
       }
     },
+    "Beliebig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Any"
+          }
+        }
+      }
+    },
     "berlinerbaeder.de" : {
 
     },
@@ -217,12 +230,52 @@
         }
       }
     },
-    "Ein Bad gilt als machbar, wenn du vor Einlassschluss da bist und nach dem Umziehen noch deine Trainingsdauer bis zum Badeschluss schwimmen kannst." : {
+    "Dein Standort ist nicht geteilt. Anreise und Schwimmdauer sind ausgeblendet, die Bäder nach Öffnungszeit sortiert." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A pool counts if you get there before last entry and, after changing, still have time for your full session before you have to leave the water."
+            "value" : "Your location is not shared. Travel and swim length are hidden; pools are sorted by opening hours."
+          }
+        }
+      }
+    },
+    "Der Standort wird noch ermittelt. Anreise und Schwimmdauer erscheinen, sobald er da ist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding your location. Travel and swim length appear as soon as it is available."
+          }
+        }
+      }
+    },
+    "Du bist nicht in Berlin. Anreise und Schwimmdauer sind ausgeblendet, die Bäder nach Öffnungszeit sortiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are not in Berlin. Travel and swim length are hidden; pools are sorted by opening hours."
+          }
+        }
+      }
+    },
+    "Du bist nicht in Berlin. Bäder nach Öffnungszeit sortiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are not in Berlin. Pools sorted by opening hours."
+          }
+        }
+      }
+    },
+    "Ein Bad gilt als machbar, wenn du vor Einlassschluss da bist und nach dem Umziehen noch deine Schwimmdauer bis zum Badeschluss schwimmen kannst. Ohne Auswahl zählt jedes offene Bad, sortiert nach Nähe." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pool counts if you get there before last entry and, after changing, still have time for your full session before you have to leave the water. Without a choice, every open pool counts, sorted by distance."
           }
         }
       }
@@ -307,22 +360,22 @@
         }
       }
     },
-    "Frauenschwimmen zählt" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Include women-only sessions"
-          }
-        }
-      }
-    },
     "Geschlossen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Closed"
+          }
+        }
+      }
+    },
+    "Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison. „Nur ungeteilte Wasserfläche“ blendet Zeiten aus, in denen Bahnen an Vereine vergeben sind." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Hide times with club lanes” skips sessions where some lanes are reserved for clubs. Closed pools are e.g. outdoor pools in winter."
           }
         }
       }
@@ -413,6 +466,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notices"
+          }
+        }
+      }
+    },
+    "Inkl. Frauenschwimmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incl. women-only sessions"
           }
         }
       }
@@ -528,22 +591,23 @@
         }
       }
     },
+    "Mit 50-m-Becken" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With 50 m pool"
+          }
+        }
+      }
+    },
     "Nicht voll" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not busy"
-          }
-        }
-      }
-    },
-    "Nur 50-m-Becken" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50 m pools only"
           }
         }
       }
@@ -649,6 +713,16 @@
         }
       }
     },
+    "Schwimmdauer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swim length"
+          }
+        }
+      }
+    },
     "Schwimmen gehen?" : {
       "localizations" : {
         "en" : {
@@ -679,22 +753,32 @@
         }
       }
     },
-    "Standort aus – Bäder nach Öffnungszeit sortiert" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Location off – pools sorted by opening times"
-          }
-        }
-      }
-    },
     "Standort freigeben" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share location"
+          }
+        }
+      }
+    },
+    "Standort nicht geteilt. Bäder nach Öffnungszeit sortiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location not shared. Pools sorted by opening times."
+          }
+        }
+      }
+    },
+    "Standort wird ermittelt. Bäder vorerst nach Öffnungszeit sortiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finding location. Pools sorted by opening hours for now."
           }
         }
       }
@@ -730,21 +814,12 @@
       }
     },
     "Training" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session"
-          }
-        }
-      }
-    },
-    "Trainingsdauer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Session length"
           }
         }
       }
@@ -780,6 +855,7 @@
       }
     },
     "Verkehrsmittel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -825,6 +901,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Website"
+          }
+        }
+      }
+    },
+    "Weitere Optionen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More options"
           }
         }
       }

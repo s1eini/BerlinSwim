@@ -13,6 +13,19 @@ extension AppModel {
             })
     }
 
+    /// Training length / travel mode as optionals: nil = not chosen (no filter).
+    var trainingBinding: Binding<Int?> {
+        Binding(
+            get: { self.preferences.trainingSet ? self.preferences.trainingMinutes : nil },
+            set: { if let v = $0 { self.preferences.trainingMinutes = v } else { self.preferences.trainingSet = false } })
+    }
+
+    var travelBinding: Binding<TravelMode?> {
+        Binding(
+            get: { self.preferences.travelSet ? self.preferences.travelMode : nil },
+            set: { if let v = $0 { self.preferences.travelMode = v } else { self.preferences.travelSet = false } })
+    }
+
     /// "Nur 50-m-Becken": the same lane-length minimum the 50 m chip and Settings use.
     var only50mBinding: Binding<Bool> {
         Binding(
@@ -20,19 +33,15 @@ extension AppModel {
             set: { self.preferences.minLaneLength = $0 ? 50 : nil })
     }
 
-    /// The map's recenter button only helps with a known position in the Berlin area (60 km around the city
-    /// centre). Without location, or from Munich, it would not be useful.
-    var canRecenterOnUser: Bool {
-        guard travelKnown else { return false }
-        let o = origin
-        let c = Geo.berlinCenter
-        return CLLocation(latitude: o.lat, longitude: o.lon)
-            .distance(from: CLLocation(latitude: c.lat, longitude: c.lon)) < 60_000
-    }
+    /// Wished swim lengths offered in the pickers (home screen, map menu, Settings).
+    static let trainingOptions = [15, 30, 45, 60, 75, 90, 120]
+
+    /// The map's recenter button only helps with a known position in the Berlin area.
+    var canRecenterOnUser: Bool { travelKnown }
 
     /// Whether any toggle-style filter (not travel mode / duration, which are always set) is on.
     var hasActiveFilters: Bool {
-        preferences.minLaneLength == 50 || !preferences.requiredFeatures.isEmpty || preferences.avoidCrowded
+        preferences.minLaneLength == 50 || !preferences.requiredFeatures.isEmpty || (travelKnown && (preferences.trainingSet || preferences.travelSet))
     }
 }
 
@@ -47,28 +56,31 @@ struct FilterMenu: View {
         @Bindable var model = model
         Menu {
             // Submenus keep the menu short; the heading makes clear the times are the training duration.
+            if model.travelKnown { // swim length / travel only make sense with a usable position
             Section("Mein Training") {
                 if model.travelKnown {
-                    Menu("Anreise", systemImage: model.preferences.travelMode.symbol) {
-                        Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
-                            ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                    Menu("Anreise", systemImage: model.preferences.travelSet ? model.preferences.travelMode.symbol : "figure.walk.motion") {
+                        Picker("Anreise", selection: model.travelBinding) {
+                            Text("Beliebig").tag(TravelMode?.none)
+                            ForEach(TravelMode.allCases) { Label($0.title, systemImage: $0.symbol).tag(TravelMode?.some($0)) }
                         }
                         .pickerStyle(.inline)
                     }
                 }
-                Menu("Trainingsdauer", systemImage: "timer") {
-                    Picker("Trainingsdauer", selection: $model.preferences.trainingMinutes) {
-                        ForEach([30, 45, 60, 75, 90, 120], id: \.self) { Text(Fmt.minutes($0)).tag($0) }
+                Menu("Schwimmdauer", systemImage: "figure.pool.swim") {
+                    Picker("Schwimmdauer", selection: model.trainingBinding) {
+                        Text("Beliebig").tag(Int?.none)
+                        ForEach(AppModel.trainingOptions, id: \.self) { Text(Fmt.minutes($0)).tag(Int?.some($0)) }
                     }
                     .pickerStyle(.inline)
                 }
             }
+            }
             Section("Filter") {
-                Toggle("50 m", systemImage: "figure.pool.swim", isOn: model.only50mBinding)
+                Toggle("50 m", systemImage: "ruler.fill", isOn: model.only50mBinding)
                 ForEach(quick) { f in
                     Toggle(f.title, systemImage: f.symbol, isOn: model.featureBinding(f))
                 }
-                Toggle("Nicht voll", systemImage: "person.2.slash", isOn: $model.preferences.avoidCrowded)
             }
         } label: {
             Image(systemName: "ellipsis")

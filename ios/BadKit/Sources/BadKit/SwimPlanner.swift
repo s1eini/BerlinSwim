@@ -50,10 +50,15 @@ public enum TravelMode: String, Codable, CaseIterable, Sendable, Identifiable {
 }
 
 public struct SwimPreferences: Codable, Sendable, Equatable {
-    public var trainingMinutes: Int = 60
+    public var trainingMinutes: Int = 60 { didSet { trainingSet = true } }
+    /// False (default): no wished training length – any open pool counts, for at least `minimumUsefulMinutes`.
+    public var trainingSet: Bool = false
+    /// False (default): travel is ignored for the plans; pools are just sorted by distance.
+    public var travelSet: Bool = false
+    var effectiveTrainingMinutes: Int { trainingSet ? trainingMinutes : minimumUsefulMinutes }
     /// Time from arrival to being in the water (ticket, changing, shower).
     public var changeMinutes: Int = 15
-    public var travelMode: TravelMode = .transit
+    public var travelMode: TravelMode = .transit { didSet { travelSet = true } }
     /// Only areas with at least this lane length (nil = any).
     public var minLaneLength: Int? = nil
     /// Ignore "öffentl. Schwimmen mit eingeschränkter Wasserfläche" (default: it counts).
@@ -72,7 +77,7 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
     public init() {}
 
     private enum CodingKeys: String, CodingKey {
-        case trainingMinutes, changeMinutes, travelMode, minLaneLength, onlyFullWaterArea
+        case trainingMinutes, trainingSet, travelSet, changeMinutes, travelMode, minLaneLength, onlyFullWaterArea
         case requiredFeatures, favorites, minimumUsefulMinutes, avoidCrowded, includeWomenOnly, showOutOfService
     }
 
@@ -81,20 +86,22 @@ public struct SwimPreferences: Codable, Sendable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = SwimPreferences()
         trainingMinutes = try c.decodeIfPresent(Int.self, forKey: .trainingMinutes) ?? d.trainingMinutes
+        trainingSet = try c.decodeIfPresent(Bool.self, forKey: .trainingSet) ?? false
+        travelSet = try c.decodeIfPresent(Bool.self, forKey: .travelSet) ?? false
         changeMinutes = try c.decodeIfPresent(Int.self, forKey: .changeMinutes) ?? d.changeMinutes
         travelMode = try c.decodeIfPresent(TravelMode.self, forKey: .travelMode) ?? d.travelMode
         minLaneLength = try c.decodeIfPresent(Int.self, forKey: .minLaneLength)
         // New key (old "includeLimited" is ignored on purpose: limited water area counts again by default).
         onlyFullWaterArea = try c.decodeIfPresent(Bool.self, forKey: .onlyFullWaterArea) ?? d.onlyFullWaterArea
-        requiredFeatures = try c.decodeIfPresent(Set<Feature>.self, forKey: .requiredFeatures) ?? []
+        // Tolerant: unknown feature names are dropped; the old "lane50" feature became the lane-length minimum.
+        let names = try c.decodeIfPresent([String].self, forKey: .requiredFeatures) ?? []
+        requiredFeatures = Set(names.compactMap(Feature.init(rawValue:)))
+        if names.contains("lane50") { minLaneLength = 50 }
         favorites = try c.decodeIfPresent(Set<Int>.self, forKey: .favorites) ?? []
         minimumUsefulMinutes = try c.decodeIfPresent(Int.self, forKey: .minimumUsefulMinutes) ?? d.minimumUsefulMinutes
         avoidCrowded = try c.decodeIfPresent(Bool.self, forKey: .avoidCrowded) ?? d.avoidCrowded
         includeWomenOnly = try c.decodeIfPresent(Bool.self, forKey: .includeWomenOnly) ?? d.includeWomenOnly
         showOutOfService = try c.decodeIfPresent(Bool.self, forKey: .showOutOfService) ?? d.showOutOfService
-        // The "50 m" filter used to be a feature; it's now the lane-length minimum.
-        if requiredFeatures.remove(.lane50) != nil { minLaneLength = 50 }
-        requiredFeatures.remove(.lane25)
     }
 }
 
@@ -263,7 +270,7 @@ public struct SwimPlanner: Sendable {
             return plan
         }
 
-        let training = TimeInterval(preferences.trainingMinutes * 60)
+        let training = TimeInterval(preferences.effectiveTrainingMinutes * 60)
         let change = TimeInterval(preferences.changeMinutes * 60)
         let cutoff = TimeInterval(pool.rules.entryCutoffMin * 60)
         let exitBefore = TimeInterval(pool.rules.exitBeforeCloseMin * 60)
@@ -322,8 +329,10 @@ public struct SwimPlanner: Sendable {
             .filter { pool in !(preferences.avoidCrowded && occupancy[pool.id]?.isCrowded == true) }
             .map { pool in
                 let (t, est) = travelKnown ? travel(pool) : (0, false)
-                var p = plan(for: pool, now: now, travel: t, travelIsEstimate: est)
-                p.travelKnown = travelKnown
+                // Travel not chosen: plan without it, but keep the time for sorting by distance.
+                var p = plan(for: pool, now: now, travel: preferences.travelSet ? t : 0, travelIsEstimate: est)
+                p.travelKnown = travelKnown && preferences.travelSet
+                p.travel = t
                 if let o = occupancy[pool.id], let reason = o.closedReason {
                     p.status = .closed
                     p.closedReason = reason

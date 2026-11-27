@@ -180,15 +180,13 @@ public struct Slot: Codable, Sendable, Hashable {
 // MARK: - Features used for filters and chips
 
 public enum Feature: String, CaseIterable, Codable, Sendable, Identifiable {
-    case lane50, lane25, diving, sauna, nonSwimmer, toddler, slide, lawn, beach, food
+    case diving, sauna, nonSwimmer, toddler, slide, lawn, beach, food
     case accessible, waterLift
 
     public var id: String { rawValue }
 
     public var title: String {
         switch self {
-        case .lane50: "50 m"
-        case .lane25: "25 m"
         case .diving: L("Sprunganlage")
         case .sauna: L("Sauna")
         case .nonSwimmer: L("Nichtschwimmer")
@@ -204,7 +202,6 @@ public enum Feature: String, CaseIterable, Codable, Sendable, Identifiable {
 
     public var symbol: String {
         switch self {
-        case .lane50, .lane25: "figure.pool.swim"
         case .diving: "figure.pool.swim.circle"
         case .sauna: "flame"
         case .nonSwimmer: "figure.and.child.holdinghands"
@@ -220,8 +217,6 @@ public enum Feature: String, CaseIterable, Codable, Sendable, Identifiable {
 
     func matches(_ p: Pool) -> Bool {
         switch self {
-        case .lane50: p.equipment.contains("50-m-Becken")
-        case .lane25: p.equipment.contains("25-m-Becken")
         case .diving: p.equipment.contains("Sprunganlage")
         case .sauna: p.equipment.contains("Sauna") || p.areas.contains { $0.kind == .sauna }
         case .nonSwimmer: p.equipment.contains("Nichtschwimmerbecken")

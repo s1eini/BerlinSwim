@@ -4,11 +4,13 @@
 # 3_widget.png (home screen with the large widget) is taken by hand: place the widget in the iPhone simulator, bring its page to the front, `simctl io … screenshot`; once per language (the widget follows the system language).
 # The unfolded Duo (inner display) is black while the simulator is folded: unfold it by hand, then run
 #   DUO_INNER=1 ios/scripts/store-screenshots.sh     → only the Duo, display 3, files duoinner_1_…duoinner_4_
+# DUO_ONLY=1 ios/scripts/store-screenshots.sh      → only the folded Duo (outer display), files duo_1_…duo_4_
+# All devices must run iOS 27.2 (check with `xcrun simctl list devices`; the 17 Pro Max also exists on 26.5).
 # Needs a debug build of the app in DerivedData (xcodebuild -scheme BerlinSwim -destination 'id=<udid>' build).
 set -e
 export DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
 ROOT=${0:A:h}/../..
-UDID=${UDID:-3FA23A5F-8E37-432D-97EC-6B8713342923}   # iPhone 17 Pro Max
+UDID=${UDID:-52E6F644-9A8D-4BDA-B239-8C384A044634}   # iPhone 17 Pro Max, iOS 27.2
 APP=$(find ~/Library/Developer/Xcode/DerivedData -name BerlinSwim.app -path '*Debug-iphonesimulator*' -not -path '*Index.noindex*' | head -1)
 POOL=${POOL:-49}                                      # Stadtbad Neukölln
 
@@ -34,6 +36,8 @@ shot() { # udid locale language name args…
 
 if [[ -n $DUO_INNER ]]; then
   devices=($DUO:duoinner_); prepare $DUO
+elif [[ -n $DUO_ONLY ]]; then
+  devices=($DUO:duo_); prepare $DUO
 else
   devices=($UDID:"" $IPAD:ipad_ $DUO:duo_); prepare $UDID; prepare $IPAD; prepare $DUO
 fi

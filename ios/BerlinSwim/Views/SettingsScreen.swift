@@ -21,40 +21,69 @@ struct SettingsScreen: View {
         @Bindable var model = model
         NavigationStack {
             Form {
-                Section {
-                    Stepper(value: $model.preferences.trainingMinutes, in: 15...240, step: 15) {
-                        LabeledContent("Trainingsdauer", value: Fmt.minutes(model.preferences.trainingMinutes))
+                if model.travelKnown { // travel and swim length need a usable position (Berlin area)
+                    Section {
+                        Picker("Anreise", selection: model.travelBinding) {
+                            Text("Beliebig").tag(TravelMode?.none)
+                            ForEach(TravelMode.allCases) { Text($0.title).tag(TravelMode?.some($0)) }
+                        }
+                        // Menu picker like the other rows: stays on one line (a stepper pushes the label onto two)
+                        Picker("Umziehen & Duschen", selection: $model.preferences.changeMinutes) {
+                            ForEach(Set([0, 5, 10, 15, 20, 25, 30, 45, model.preferences.changeMinutes]).sorted(), id: \.self) {
+                                Text(Fmt.minutes($0)).tag($0)
+                            }
+                        }
+                        Picker("Schwimmdauer", selection: model.trainingBinding) {
+                            Text("Beliebig").tag(Int?.none)
+                            ForEach(AppModel.trainingOptions, id: \.self) { Text(Fmt.minutes($0)).tag(Int?.some($0)) }
+                        }
+                    } header: {
+                        Text("Mein Training")
+                    } footer: {
+                        Text("Ein Bad gilt als machbar, wenn du vor Einlassschluss da bist und nach dem Umziehen noch deine Schwimmdauer bis zum Badeschluss schwimmen kannst. Ohne Auswahl zählt jedes offene Bad, sortiert nach Nähe.")
                     }
-                    Stepper(value: $model.preferences.changeMinutes, in: 0...45, step: 5) {
-                        LabeledContent("Umziehen & Duschen", value: Fmt.minutes(model.preferences.changeMinutes))
+                } else {
+                    Section {
+                        Text(model.tooFarFromBerlin
+                             ? "Du bist nicht in Berlin. Anreise und Schwimmdauer sind ausgeblendet, die Bäder nach Öffnungszeit sortiert."
+                             : model.locationPending
+                             ? "Der Standort wird noch ermittelt. Anreise und Schwimmdauer erscheinen, sobald er da ist."
+                             : "Dein Standort ist nicht geteilt. Anreise und Schwimmdauer sind ausgeblendet, die Bäder nach Öffnungszeit sortiert.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        if model.locationDenied {
+                            Button("Standort freigeben") {
+                                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                            }
+                        }
+                    } header: {
+                        Text("Mein Training")
                     }
-                    Picker("Verkehrsmittel", selection: $model.preferences.travelMode) {
-                        ForEach(TravelMode.allCases) { Text($0.title).tag($0) }
-                    }
-                } header: {
-                    Text("Mein Training")
-                } footer: {
-                    Text("Ein Bad gilt als machbar, wenn du vor Einlassschluss da bist und nach dem Umziehen noch deine Trainingsdauer bis zum Badeschluss schwimmen kannst.")
                 }
 
                 Section {
-                    Toggle("Nur 50-m-Becken", isOn: model.only50mBinding)
-                    Toggle("Nur ungeteilte Wasserfläche", isOn: $model.preferences.onlyFullWaterArea)
-                    Toggle("Volle Bäder ausblenden", isOn: $model.preferences.avoidCrowded)
-                    Toggle("Frauenschwimmen zählt", isOn: $model.preferences.includeWomenOnly)
-                    Toggle("Geschlossene Bäder zeigen", isOn: $model.preferences.showOutOfService)
-                } header: {
-                    Text("Bäder")
-                } footer: {
-                    Text("„Nur 50-m-Becken“ ist derselbe Filter wie der 50-m-Chip auf der Startseite. Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison. „Nur ungeteilte Wasserfläche“ blendet Zeiten aus, in denen Bahnen an Vereine vergeben sind.")
-                }
-
-                Section("Nur Bäder mit …") {
-                    ForEach(Feature.allCases.filter { $0 != .lane50 && $0 != .lane25 }) { f in
+                    // 50 m first (lane length, not a Feature), then the equipment features – same as the chips on the home screen
+                    Toggle(isOn: model.only50mBinding) {
+                        Label("Mit 50-m-Becken", systemImage: "ruler.fill")
+                    }
+                    ForEach(Feature.allCases) { f in
                         Toggle(isOn: model.featureBinding(f)) {
                             Label(f.title, systemImage: f.symbol)
                         }
                     }
+                } header: {
+                    Text("Nur Bäder mit …")
+                }
+
+                Section {
+                    Toggle("Nur ungeteilte Wasserfläche", isOn: $model.preferences.onlyFullWaterArea)
+                    Toggle("Inkl. Frauenschwimmen", isOn: $model.preferences.includeWomenOnly)
+                    Toggle("Volle Bäder ausblenden", isOn: $model.preferences.avoidCrowded)
+                    Toggle("Geschlossene Bäder zeigen", isOn: $model.preferences.showOutOfService)
+                } header: {
+                    Text("Weitere Optionen")
+                } footer: {
+                    Text("Geschlossene Bäder sind z. B. Sommerbäder außerhalb der Saison. „Nur ungeteilte Wasserfläche“ blendet Zeiten aus, in denen Bahnen an Vereine vergeben sind.")
                 }
 
                 Section {

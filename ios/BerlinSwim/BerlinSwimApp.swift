@@ -7,7 +7,8 @@ struct BerlinSwimApp: App {
         #if DEBUG
         // Screenshot aid: `-previewHour 23` runs on the bundled seed data at a fixed time (no network/location).
         let hour = UserDefaults.standard.integer(forKey: "previewHour")
-        if hour > 0 { return AppModel.preview(hour: hour) }
+        // Chosen swim length and travel mode, so the screenshots show the filled chips and travel times.
+        if hour > 0 { return AppModel.preview(hour: hour) { $0.trainingMinutes = 60; $0.travelMode = .transit } }
         #endif
         return AppModel()
     }()

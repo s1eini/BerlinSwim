@@ -68,7 +68,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
     }
 
     @Test func oldLane50FeatureMigratesToMinLaneLength() throws {
-        let json = #"{"trainingMinutes":60,"requiredFeatures":["lane50","sauna"]}"#
+        let json = #"{"trainingMinutes":60,"requiredFeatures":["lane50","lane25","sauna"]}"#
         let prefs = try JSONDecoder().decode(SwimPreferences.self, from: Data(json.utf8))
         #expect(prefs.minLaneLength == 50)
         #expect(prefs.requiredFeatures == [.sauna])
@@ -265,7 +265,7 @@ func planner(training: Int = 60, change: Int = 15, configure: (inout SwimPrefere
         let feed = try PoolsFeed.decode(Data(json.utf8))
         #expect(feed.pools.first?.shortName == "Kombibad Seestraße")
         #expect(feed.pools.first?.areas.first?.slots.first?.start == t(16))
-        #expect(feed.pools.first?.has(.lane50) == true)
+        #expect(feed.pools.first?.areas.first?.laneLength == 50)
     }
 }
 
